@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "pydanclick"
-version = "0.0.1"
+version = "0.1.0"
 description = "Use Pydantic models as Click options"
-authors = ["Félix Martel <ffelix.martel@polytechnique.edu>"]
+authors = ["Félix Martel <felix.martel@polytechnique.edu>"]
 repository = "https://github.com/felix-martel/pydanclick"
 documentation = "https://felix-martel.github.io/pydanclick/"
 readme = "README.md"
@@ -12,6 +12,11 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
+pydantic = "^2.6.1"
+click = "^8.1.7"
+typing-extensions = "^4.9.0"
+annotated-types = "^0.6.0"
+pydantic-core = "^2.16.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
@@ -20,6 +25,9 @@ deptry = "^0.12.0"
 mypy = "^1.5.1"
 pre-commit = "^3.4.0"
 tox = "^4.11.1"
+griffe2md = "^1.0.0"
+black = "^24.2.0"
+pygments = "^2.17.2"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"
@@ -99,3 +107,6 @@ source = ["pydanclick"]
 
 [tool.ruff.per-file-ignores]
 "tests/*" = ["S101"]
+
+[tool.deptry.per_rule_ignores]
+DEP003 = ["griffe"]

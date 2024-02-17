@@ -1,0 +1,71 @@
+import json
+from operator import attrgetter
+from pathlib import Path
+
+import pytest
+from click.testing import CliRunner
+
+from examples import complex, simple
+
+
+@pytest.mark.parametrize(
+    "args, expected_results",
+    [
+        (["--epochs", "8"], {"epochs": 8, "lr": 1e-4, "early_stopping": False}),
+        (["--epochs", "8", "--lr", "0.1", "--early-stopping"], {"epochs": 8, "lr": 0.1, "early_stopping": True}),
+        (["--epochs", "8", "--lr", "0.1", "--no-early-stopping"], {"epochs": 8, "lr": 0.1, "early_stopping": False}),
+    ],
+)
+def test_simple_example(args, expected_results):
+    """Ensure the simple examples works."""
+    runner = CliRunner()
+    result = runner.invoke(simple.cli, args)
+    assert result.exit_code == 0
+    assert json.loads(result.output) == expected_results
+
+
+@pytest.mark.parametrize(
+    "args, expected_error",
+    [
+        ([], "Error: Missing option '--epochs'."),
+        (["--epochs", "8", "--lr", "0"], "Error: Invalid value for '--lr': 0.0 is not in the range x>0."),
+        (["--epochs", "8", "--early-stopping=yes"], "Error: Option '--early-stopping' does not take a value."),
+    ],
+)
+def test_simple_example_with_invalid_args(args, expected_error):
+    """Ensure the simple example fails when expected."""
+    runner = CliRunner()
+    result = runner.invoke(simple.cli, args, catch_exceptions=False)
+    assert expected_error in result.output
+    assert result.exit_code > 0
+
+
+@pytest.mark.parametrize(
+    "args, attr, expected_result",
+    [
+        ([], "training.epochs", 4),
+        (["--verbose"], "verbose", True),
+        (["--epochs", "8"], "training.epochs", 8),
+        (["--opt", "sgd"], "optimizer.optimizer", "sgd"),
+        (["-o", "sgd"], "optimizer.optimizer", "sgd"),
+        (["--opt", "sgd", "--opt-learning-rate", "0.1"], "optimizer.learning_rate", 0.1),
+        (["--lr", "0.1"], "optimizer.learning_rate", 0.1),
+        (["--loss", "mse"], "loss.func", "mse"),
+        (["-l", "hinge"], "loss.func", "hinge"),
+        (["--log-file", "foo/bar.log"], "training.log_file", Path("foo/bar.log")),
+    ],
+)
+def test_complex_example(args, attr, expected_result):
+    """Ensure the complex error works as expected."""
+    runner = CliRunner()
+    raw_result = runner.invoke(complex.cli, ["--epochs", "4", *args])
+    assert raw_result.exit_code == 0
+    result = complex.Config.model_validate_json(raw_result.output)
+    assert attrgetter(attr)(result) == expected_result
+
+
+def test_complex_example_help():
+    runner = CliRunner()
+    result = runner.invoke(complex.cli, ["--help"])
+    # Ensure field description is added to the CLI documentation
+    assert "Attach a description directly in the field" in result.output
