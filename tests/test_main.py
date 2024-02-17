@@ -1,5 +1,5 @@
 from contextlib import nullcontext as does_not_raise
-from typing import Annotated, Literal, Union
+from typing import Literal, Union
 
 import click
 import pytest
@@ -7,6 +7,7 @@ from _pytest.python_api import RaisesContext
 from click import BadParameter
 from click.testing import CliRunner
 from pydantic import BaseModel, Field
+from typing_extensions import Annotated
 
 from pydanclick import from_pydantic
 from pydanclick.main import _get_type_from_field
