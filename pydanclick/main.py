@@ -2,8 +2,7 @@ import datetime
 import functools
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from types import NoneType
-from typing import Any, Literal, Optional, ParamSpec, TypedDict, TypeVar, Union, get_args, get_origin
+from typing import Any, Dict, List, Literal, Optional, Type, TypedDict, TypeVar, Union, get_args, get_origin
 from uuid import UUID
 
 import click
@@ -12,7 +11,9 @@ from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
-P = ParamSpec("P")
+# Can't use `types.NoneType`, as it was only introduced in Python 3.10
+NoneType = type(None)
+
 T = TypeVar("T")
 
 
@@ -39,16 +40,16 @@ class _ParameterKwargs(TypedDict, total=False):
 
 def from_pydantic(
     __var: str,
-    model: type[BaseModel],
+    model: Type[BaseModel],
     *,
     exclude: Sequence[str] = (),
-    rename: dict[str, str] | None = None,
-    shorten: dict[str, str] | None = None,
+    rename: Optional[Dict[str, str]] = None,
+    shorten: Optional[Dict[str, str]] = None,
     prefix: str = "",
     parse_docstring: bool = True,
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
-    extra_options: dict[str, _ParameterKwargs] | None = None,
-) -> Callable[[Callable[P, T]], Callable[P, T]]:
+    extra_options: Optional[Dict[str, _ParameterKwargs]] = None,
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Decorator to add fields from a Pydantic model as options to a Click command.
 
     Args:
@@ -105,11 +106,11 @@ def _get_option_from_field(
     field_name: str,
     field: FieldInfo,
     prefix: str = "",
-    documentation: dict[str, str] | None = None,
-    option_name: str | None = None,
-    short_name: str | None = None,
-    option_kwargs: _ParameterKwargs | None = None,
-) -> Callable[[Callable], Callable]:
+    documentation: Optional[Dict[str, str]] = None,
+    option_name: Optional[str] = None,
+    short_name: Optional[str] = None,
+    option_kwargs: Optional[_ParameterKwargs] = None,
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Convert a Pydantic field to a Click option function.
 
     Note that it doesn't return a `click.Option` object, but rather a decorator, as created by `click.option()`.
@@ -169,13 +170,13 @@ def _get_option_name(field_name: str, is_boolean_flag: bool = False, prefix: str
 class _RangeDict(TypedDict, total=False):
     """Represent arguments to `click.IntRange` or `click.FloatRange`."""
 
-    max: SupportsLt | SupportsLe
-    min: SupportsGt | SupportsGe
+    max: Union[SupportsLt, SupportsLe]
+    min: Union[SupportsGt, SupportsGe]
     max_open: bool
     min_open: bool
 
 
-def _get_range_from_metadata(metadata: list[Any]) -> _RangeDict:
+def _get_range_from_metadata(metadata: List[Any]) -> _RangeDict:
     """Convert Pydantic numerical constraints to keyword argumetns compatible with `IntRange` and `FloatRange`.
 
     Args:
@@ -275,7 +276,7 @@ def _get_type_from_field(field: FieldInfo) -> click.ParamType:
         return custom_type
 
 
-def _get_default_value_from_field(field: FieldInfo) -> Any | Callable[[], Any] | None:
+def _get_default_value_from_field(field: FieldInfo) -> Union[Any, Callable[[], Any], None]:
     """Return the default value of `field`.
 
     Args:
@@ -292,8 +293,8 @@ def _get_default_value_from_field(field: FieldInfo) -> Any | Callable[[], Any] |
 
 
 def _parse_docstring(
-    model_cls: type[BaseModel], docstring_style: Literal["google", "numpy", "sphinx"] = "google"
-) -> dict[str, str]:
+    model_cls: Type[BaseModel], docstring_style: Literal["google", "numpy", "sphinx"] = "google"
+) -> Dict[str, str]:
     """Parse the docstring of a `BaseModel` and returns a mapping from field name to their documentation.
 
     Requires the optional dependency `griffe`. If it is not installed, return an empty dictionary.

@@ -1,8 +1,9 @@
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Literal, Optional
 
 import click
 from pydantic import BaseModel, Field
+from typing_extensions import Annotated
 
 from pydanclick import from_pydantic
 
@@ -15,7 +16,7 @@ class TrainingConfig(BaseModel):
 
     epochs: int
     batch_size: int = 64
-    log_file: Path | None = None
+    log_file: Optional[Path] = None
 
 
 class OptimizerConfig(BaseModel):
