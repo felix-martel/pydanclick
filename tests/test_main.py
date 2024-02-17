@@ -1,5 +1,5 @@
 from contextlib import nullcontext as does_not_raise
-from typing import Literal, Union
+from typing import List, Literal, Union
 
 import click
 import pytest
@@ -96,8 +96,8 @@ def error_or_value(outcome):
         (bool, "123", pytest.raises(BadParameter)),
         (Annotated[bool, "foo_bar"], "yes", True),
         (Union[float, str], "3.14", "3.14"),
-        (list[str], None, None),
-        (list[str], "[1, 2, 3, 4]", "[1, 2, 3, 4]"),
+        (List[str], None, None),
+        (List[str], "[1, 2, 3, 4]", "[1, 2, 3, 4]"),
     ],
 )
 def test_get_type_from_field(annotation, raw_value, expected_outcome):
