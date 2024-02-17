@@ -1,7 +1,6 @@
-from typing import Annotated
-
 import click
 from pydantic import BaseModel, Field
+from typing_extensions import Annotated
 
 from pydanclick import from_pydantic
 

@@ -1,8 +1,21 @@
 import datetime
 import functools
-from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Type, TypedDict, TypeVar, Union, get_args, get_origin
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Type,
+    TypedDict,
+    TypeVar,
+    Union,
+    get_args,
+    get_origin,
+)
 from uuid import UUID
 
 import click
