@@ -9,15 +9,21 @@ copyright: Maintained by <a href="https://felix-martel.com">Florian</a>.
 
 nav:
   - Home: index.md
-  - Modules: modules.md
+  - API Reference: api_reference.md
+  - Contributing: contributing.md
 plugins:
   - search
   - mkdocstrings:
       handlers:
         python:
-            setup_commands:
-                - import sys
-                - sys.path.append('../')
+          setup_commands:
+            - import sys
+            - sys.path.append('../')
+          options:
+            show_source: false
+            separate_signature: true
+            show_signature_annotations: true
+            line_length: 60
 theme:
   name: material
   feature:
