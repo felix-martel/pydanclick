@@ -7,7 +7,7 @@ from typing import Any, Literal, Optional, ParamSpec, TypedDict, TypeVar, Union,
 from uuid import UUID
 
 import click
-from annotated_types import Ge, Gt, Le, Lt
+from annotated_types import Ge, Gt, Le, Lt, SupportsGe, SupportsGt, SupportsLe, SupportsLt
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
@@ -46,7 +46,7 @@ def from_pydantic(
     shorten: dict[str, str] | None = None,
     prefix: str = "",
     parse_docstring: bool = True,
-    docstring_style: str = "google",
+    docstring_style: Literal["google", "numpy", "sphinx"] = "google",
     extra_options: dict[str, _ParameterKwargs] | None = None,
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorator to add fields from a Pydantic model as options to a Click command.
@@ -76,9 +76,9 @@ def from_pydantic(
     extra_options = extra_options if extra_options is not None else {}
     doc = _parse_docstring(model, docstring_style=docstring_style) if parse_docstring else {}
 
-    def wrapper(f):
+    def wrapper(f: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(f)
-        def wrapped(**kwargs):
+        def wrapped(**kwargs: Any) -> Any:
             raw_model = {field: kwargs.pop(field) for field in fields if field in kwargs}
             kwargs[__var] = model.model_validate(raw_model)
             return f(**kwargs)
@@ -104,7 +104,7 @@ def from_pydantic(
 def _get_option_from_field(
     field_name: str,
     field: FieldInfo,
-    prefix="",
+    prefix: str = "",
     documentation: dict[str, str] | None = None,
     option_name: str | None = None,
     short_name: str | None = None,
@@ -143,7 +143,7 @@ def _get_option_from_field(
     }
     if option_kwargs is not None:
         kwargs.update(option_kwargs)
-    return click.option(*param_decls, **kwargs)
+    return click.option(*param_decls, cls=click.Option, **kwargs)
 
 
 def _get_option_name(field_name: str, is_boolean_flag: bool = False, prefix: str = "") -> str:
@@ -169,8 +169,8 @@ def _get_option_name(field_name: str, is_boolean_flag: bool = False, prefix: str
 class _RangeDict(TypedDict, total=False):
     """Represent arguments to `click.IntRange` or `click.FloatRange`."""
 
-    max: float | int
-    min: float | int
+    max: SupportsLt | SupportsLe
+    min: SupportsGt | SupportsGe
     max_open: bool
     min_open: bool
 
@@ -184,7 +184,7 @@ def _get_range_from_metadata(metadata: list[Any]) -> _RangeDict:
     Returns:
         a dictionary
     """
-    range_args = {}
+    range_args: _RangeDict = {}
     for constraint in metadata:
         if isinstance(constraint, Le):
             range_args["max"] = constraint.le
@@ -217,11 +217,11 @@ def _get_numerical_type(field: FieldInfo) -> click.ParamType:
     range_args = _get_range_from_metadata(field.metadata)
     if field.annotation is int:
         if range_args:
-            return click.IntRange(**range_args)
+            return click.IntRange(**range_args)  # type: ignore[arg-type]
         return click.INT
     # Non-integer numerical types default to float
     if range_args:
-        return click.FloatRange(**range_args)
+        return click.FloatRange(**range_args)  # type: ignore[arg-type]
     return click.FLOAT
 
 
