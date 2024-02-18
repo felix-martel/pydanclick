@@ -10,6 +10,9 @@ copyright: Maintained by <a href="https://felix-martel.com">Florian</a>.
 nav:
   - Home: index.md
   - API Reference: api_reference.md
+  - Examples:
+      - Simple: examples/simple.md
+      - Complex: examples/complex.md
   - Contributing: contributing.md
 plugins:
   - search
@@ -56,5 +59,12 @@ extra:
 markdown_extensions:
   - toc:
       permalink: true
+  - pymdownx.details
   - pymdownx.arithmatex:
       generic: true
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      base_path: ["docs", "examples", "README.md"]
+      check_paths: True

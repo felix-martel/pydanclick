@@ -22,7 +22,7 @@ class TrainingConfig(BaseModel):
 @click.command()
 @from_pydantic("config", TrainingConfig)
 def cli(config: TrainingConfig):
-    """A simple example with a few parameters and default behvior."""
+    """A simple example with a few parameters and default behavior."""
     # Here, we receive an already validated Pydantic object.
     click.echo(config.model_dump_json(indent=2))
 

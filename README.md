@@ -1,10 +1,13 @@
 # pydanclick
 
-[![Release](https://img.shields.io/github/v/release/felix-martel/pydanclick)](https://img.shields.io/github/v/release/felix-martel/pydanclick)
-[![Build status](https://img.shields.io/github/actions/workflow/status/felix-martel/pydanclick/main.yml?branch=main)](https://github.com/felix-martel/pydanclick/actions/workflows/main.yml?query=branch%3Amain)
-[![codecov](https://codecov.io/gh/felix-martel/pydanclick/branch/main/graph/badge.svg)](https://codecov.io/gh/felix-martel/pydanclick)
-[![Commit activity](https://img.shields.io/github/commit-activity/m/felix-martel/pydanclick)](https://img.shields.io/github/commit-activity/m/felix-martel/pydanclick)
-[![License](https://img.shields.io/github/license/felix-martel/pydanclick)](https://img.shields.io/github/license/felix-martel/pydanclick)
+<!-- these tags are used by `pymarkdownx.snippets` to include some parts of the readme in the Mkdocs documentation -->
+<!-- --8<-- [start:overview] -->
+
+![Release](https://img.shields.io/github/v/release/felix-martel/pydanclick)
+![Build status](https://img.shields.io/github/actions/workflow/status/felix-martel/pydanclick/main.yml?branch=main)
+![codecov](https://codecov.io/gh/felix-martel/pydanclick/branch/main/graph/badge.svg)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pydanclick)
+![License](https://img.shields.io/github/license/felix-martel/pydanclick)
 
 Use Pydantic models as Click options.
 
@@ -33,7 +36,6 @@ from pydanclick import from_pydantic
 @click.command()
 @from_pydantic("config", TrainingConfig)
 def cli(config: TrainingConfig):
-    """A simple example with a few parameters and default behavior."""
     # Here, we receive an already validated Pydantic object.
     click.echo(config.model_dump_json(indent=2))
 ```
@@ -42,8 +44,6 @@ def cli(config: TrainingConfig):
 ~ python my_app.py --help
 Usage: my_app.py [OPTIONS]
 
-  A simple example with a few parameters and default behvior.
-
 Options:
   --early-stopping / --no-early-stopping
   --lr FLOAT RANGE                [x>0]
@@ -51,8 +51,13 @@ Options:
   --help                          Show this message and exit.
 ```
 
+<!-- --8<-- [end:overview] -->
+
+- Take a tour of the features below
 - Find examples in the `examples/` folder
-- See the [API Reference](#api-reference) for the full list of options
+- Read the **[📚 Documentation](https://felix-martel.github.io/pydanclick/)**
+
+<!-- --8<-- [start:features] -->
 
 ## Features
 
@@ -60,18 +65,18 @@ Options:
 
 The following types are converted to native Click types:
 
-| Pydantic type                                        | Converted to         |
-| :--------------------------------------------------- | :------------------- |
-| `bool`                                               | `click.BOOL`         |
-| `str`                                                | `click.STRING`       |
-| `int`                                                | `click.INT`          |
-| `float`                                              | `click.FLOAT`        |
-| `conint`, `Annotated[int, Field(lt=..., ge=...)`     | `click.IntRange()`   |
-| `confloat`, `Annotated[float, Field(lt=..., ge=...)` | `click.FloatRange()` |
-| `pathlib.Path`                                       | `click.Path()`       |
-| `uuid.UUID`                                          | `click.UUID`         |
-| `datetime.datetime`, `datetime.date`                 | `click.DateTime()`   |
-| `Literal`                                            | `click.Choice`       |
+| Pydantic type                            | Converted to         |
+| :--------------------------------------- | :------------------- |
+| `bool`                                   | `click.BOOL`         |
+| `str`                                    | `click.STRING`       |
+| `int`                                    | `click.INT`          |
+| `float`                                  | `click.FLOAT`        |
+| `Annotated[int, Field(lt=..., ge=...)`   | `click.IntRange()`   |
+| `Annotated[float, Field(lt=..., ge=...)` | `click.FloatRange()` |
+| `pathlib.Path`                           | `click.Path()`       |
+| `uuid.UUID`                              | `click.UUID`         |
+| `datetime.datetime`, `datetime.date`     | `click.DateTime()`   |
+| `Literal`                                | `click.Choice`       |
 
 More complex validators will be handled through Pydantic usual validation logic: once handled by Click, all arguments will be used to initialize Pydantic model.
 
@@ -97,7 +102,7 @@ def cli(foo: Foo, bar: Bar):
     pass
 ```
 
-will give
+will give:
 
 ```
 ~ python cli.py
@@ -137,24 +142,24 @@ Options:
   --help         Show this message and exit.
 ```
 
-### Option documentation
+### Document options
 
 Options added with `pydanclick.from_pydantic` will appear in the command help page.
 
-Model docstring is used to document options automatically (requires `griffe`, e.g. `pip install pydanclick[griffe]`). Enabled by default, use `parse_docstring=False` to disable. Use `docstring_tyle` to choose between `google`, `numpy` and `sphinx` coding style.
+**From docstrings**: if `griffe` is installed, model docstring will be parsed and the _Attributes_ section will be used to document options automatically (you can use `pip install pydanclick[griffe]` to install it). Use `docstring_tyle` to choose between `google`, `numpy` and `sphinx` coding style. Disable docstring parsing by passing `parse_docstring=False`.
 
-`pydanclick` also supports the `Field(description=...)` syntax from Pydantic.
+**From field description**: `pydanclick` supports the [`Field(description=...)`](https://docs.pydantic.dev/latest/api/fields/#pydantic.fields.Field) syntax from Pydantic. If specified, it will take precedence over the docstring description.
 
-To specify custom documentation for a given field, use `extra_options={"my_field": "my help string"}`.
+**Explicitly**: you can always specify a custom help string for a given field by using `extra_options={"my_field": {"help": "my help string"}}` where `my_field` is the name of your field.
 
-Provided `griffe` is installed, using:
+Here are these three methods in action:
 
 ```python
 class Baz(BaseModel):
     """Some demo model.
 
     Attributes:
-        a: this comes from the docstring
+        a: this comes from the docstring (requires griffe)
     """
 
     a: int = 0
@@ -175,7 +180,7 @@ will give:
 Usage: cli.py [OPTIONS]
 
 Options:
-  --a INTEGER  this comes from the docstring
+  --a INTEGER  this comes from the docstring (requires griffe)
   --b INTEGER  this comes from the field description
   --c INTEGER  this comes from the `extra_options`
   --help       Show this message and exit.
@@ -183,7 +188,7 @@ Options:
 
 ### Customize option names
 
-Specify option names with `prefix` and short option names with `shorten`:
+Specify option names with `rename` and short option names with `shorten`:
 
 ```python
 @click.command()
@@ -204,9 +209,22 @@ Options:
   --help            Show this message and exit.
 ```
 
+Note that `prefix` won't be prepended to option names passed with `rename` or `shorten`.
+
 ### Pass extra parameters
 
 Use `extra_options` to pass extra parameters to `click.option` for a given field.
+
+For example, in the following code, the user will be prompted for the value of `a`:
+
+```python
+@click.command()
+@from_pydantic("foo", Foo, extra_options={"a": {"prompt": True}})
+def cli(foo: Foo):
+    pass
+```
+
+<!-- --8<-- [end:features] -->
 
 ## API Reference
 
@@ -263,15 +281,17 @@ Run tests with:
 pytest
 ```
 
+<!--  --8<-- [start:limitations] -->
+
 ## Limitations
 
 `pydanclick` doesn't support (yet!):
 
+- Pydantic v1
 - Nested models
 - Container types (tuples, lists, dicts) or other complex types
 - Converting fields to arguments, instead of options
 - Some union types won't work
-- Python `<3.11`
 
 Other missing features:
 
@@ -279,6 +299,8 @@ Other missing features:
 - Specifying all field-specific options directly in the Pydantic model (would allow easier re-use)
 - Most Click features should be supported out-of-the-box through the `extra_options` parameter. However, most of them aren't tested
 - Click and Pydantic both include validation logic. In particular, Click support custom `ParamType`, validation callbacks and `BadParameter` errors: it's not clear if we want to fully rely on Pydantic or on Click or on a mixture of both
+
+<!--  --8<-- [end:limitations] -->
 
 ---
 
