@@ -18,15 +18,16 @@ jobs:
       - name: Set up the environment
         uses: ./.github/actions/setup-poetry-env
 
-      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+      - name: Setup cache
+        run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
 
-      - uses: actions/cache@v4
+      - name: Restore cache
+        uses: actions/cache@v4
         with:
           key: mkdocs-material-${{ env.cache_id }}
           path: .cache
           restore-keys: |
             mkdocs-material-
 
-      - run: pip install mkdocs-material
-
-      - run: mkdocs gh-deploy --force
+      - name: Deploy documentation
+        run: poetry run mkdocs gh-deploy --force
