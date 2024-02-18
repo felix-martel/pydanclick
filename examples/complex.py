@@ -57,7 +57,12 @@ class Config(BaseModel):
     exclude=["decay_rate"],
 )
 @from_pydantic(
-    "loss_config", LossConfig, prefix="loss", rename={"func": "--loss"}, shorten={"func": "-l"}, parse_docstring=False
+    "loss_config",
+    LossConfig,
+    prefix="loss",
+    rename={"func": "--loss"},
+    shorten={"func": "-l"},
+    parse_docstring=False,
 )
 def cli(
     verbose: bool,
@@ -65,7 +70,7 @@ def cli(
     optimizer_config: OptimizerConfig,
     loss_config: LossConfig,
 ):
-    """A simple example with a few parameters and default behvior."""
+    """A slightly more complex examples with multiple models and various options."""
     config = Config(verbose=verbose, training=training_config, optimizer=optimizer_config, loss=loss_config)
     click.echo(config.model_dump_json(indent=2))
 
