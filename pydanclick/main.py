@@ -17,7 +17,7 @@ def from_pydantic(
     exclude: Sequence[str] = (),
     rename: Optional[Dict[str, str]] = None,
     shorten: Optional[Dict[str, str]] = None,
-    prefix: str | None = None,
+    prefix: Optional[str] = None,
     parse_docstring: bool = True,
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
     extra_options: Optional[Dict[str, _ParameterKwargs]] = None,

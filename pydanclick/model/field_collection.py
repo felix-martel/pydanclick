@@ -68,7 +68,7 @@ def collect_fields(
     ]
 
 
-def _iter_union(field_type: Any) -> list[Type[Any]]:
+def _iter_union(field_type: Any) -> List[Type[Any]]:
     """Iterate over the types of a union.
 
     Args:
@@ -88,10 +88,10 @@ def _is_pydantic_model(model: Any) -> TypeGuard[Type[BaseModel]]:
 
 
 def _collect_fields(
-    obj: Type[BaseModel] | FieldInfo,
+    obj: Union[Type[BaseModel], FieldInfo],
     name: FieldName = "",  # type: ignore[assignment]
-    parents: tuple[FieldName, ...] = (),
-    documentation: str | None = None,
+    parents: Tuple[FieldName, ...] = (),
+    documentation: Optional[str] = None,
     parse_docstring: bool = True,
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
 ) -> Iterable[_Field]:

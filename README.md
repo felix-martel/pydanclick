@@ -352,10 +352,9 @@ pytest
 `pydanclick` doesn't support (yet!):
 
 - Pydantic v1
-- Nested models
-- Container types (tuples, lists, dicts) or other complex types
-- Converting fields to arguments, instead of options
-- Some union types won't work
+- converting fields to arguments, instead of options
+- fields annotated with union of Pydantic models can only be used with JSON inputs, instead of properly merging all sub-fields
+- custom argument validators
 
 Other missing features:
 
@@ -363,6 +362,8 @@ Other missing features:
 - Specifying all field-specific options directly in the Pydantic model (would allow easier re-use)
 - Most Click features should be supported out-of-the-box through the `extra_options` parameter. However, most of them aren't tested
 - Click and Pydantic both include validation logic. In particular, Click support custom `ParamType`, validation callbacks and `BadParameter` errors: it's not clear if we want to fully rely on Pydantic or on Click or on a mixture of both
+- populating Pydantic fields from existing options or arguments (combined with `exclude`, it will provide a complete escape hatch to bypass Pydantclick when needed)
+- attaching Pydanclick arguments directly to the model class, to avoid duplication when re-using a model in multiple commands
 
 <!--  --8<-- [end:limitations] -->
 

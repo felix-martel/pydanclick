@@ -132,7 +132,7 @@ def _get_option_from_field(
     argument_name: ArgumentName,
     option_name: str,
     field_info: FieldInfo,
-    documentation: str | None = None,
+    documentation: Optional[str] = None,
     short_name: Optional[str] = None,
     option_kwargs: Optional[_ParameterKwargs] = None,
 ) -> click.Option:
