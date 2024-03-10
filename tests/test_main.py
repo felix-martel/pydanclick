@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 import click
+import pytest
 from click.testing import CliRunner
 from pydantic import BaseModel
 
@@ -51,3 +52,11 @@ def test_list_field():
 
     result = CliRunner().invoke(cli, ["--a", "[1, 2, 3]", "--b", '{"a": 1, "b": 2, "c": 3}'])
     assert result.exit_code == 0
+
+
+def test_from_pydantic_with_invalid_call():
+    with pytest.raises(ValueError, match="`model` must be provided"):
+
+        @from_pydantic("foo")
+        def cli(foo):
+            pass

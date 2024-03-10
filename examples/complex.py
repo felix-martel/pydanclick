@@ -47,9 +47,8 @@ class Config(BaseModel):
 
 @click.command()
 @click.option("--verbose/--no-verbose", default=False, help="Verbose output")
-@from_pydantic("training_config", TrainingConfig, extra_options={"batch_size": {"default": 12}})
+@from_pydantic(TrainingConfig, extra_options={"batch_size": {"default": 12}})
 @from_pydantic(
-    "optimizer_config",
     OptimizerConfig,
     prefix="opt",
     rename={"optimizer": "--opt"},
@@ -57,7 +56,6 @@ class Config(BaseModel):
     exclude=["decay_rate"],
 )
 @from_pydantic(
-    "loss_config",
     LossConfig,
     prefix="loss",
     rename={"func": "--loss"},

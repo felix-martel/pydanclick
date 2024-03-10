@@ -34,10 +34,10 @@ Add all its fields as options in your Click command:
 from pydanclick import from_pydantic
 
 @click.command()
-@from_pydantic("config", TrainingConfig)
-def cli(config: TrainingConfig):
+@from_pydantic(TrainingConfig)
+def cli(training_config: TrainingConfig):
     # Here, we receive an already validated Pydantic object.
-    click.echo(config.model_dump_json(indent=2))
+    click.echo(training_config.model_dump_json(indent=2))
 ```
 
 ```shell
@@ -102,8 +102,8 @@ class Bar(BaseModel):
     y: int = 0
 
 @click.command()
-@from_pydantic("foo", Foo, prefix="foo")
-@from_pydantic("bar", Bar, prefix="bar")
+@from_pydantic(Foo, prefix="foo")
+@from_pydantic(Bar, prefix="bar")
 def cli(foo: Foo, bar: Bar):
     pass
 ```
@@ -130,7 +130,7 @@ Options:
 @click.command()
 @click.argument("arg")
 @click.option("--option")
-@from_pydantic("foo", Foo)
+@from_pydantic(Foo)
 def cli(arg, option, foo: Foo):
     pass
 ```
@@ -146,6 +146,15 @@ Options:
   --a TEXT
   --b TEXT
   --help         Show this message and exit.
+```
+
+Specify a custom variable name for the instantiated model with the same syntax as a regular Click option:
+
+```python
+@click.command()
+@from_pydantic("some_name", Foo)
+def cli(some_name: Foo):
+    pass
 ```
 
 ### Document options
@@ -174,7 +183,7 @@ class Baz(BaseModel):
 
 
 @click.command()
-@from_pydantic("baz", Baz, extra_options={"c": {"help": "this comes from the `extra_options`"}})
+@from_pydantic(Baz, extra_options={"c": {"help": "this comes from the `extra_options`"}})
 def cli(baz: Baz):
     pass
 ```
@@ -198,7 +207,7 @@ Specify option names with `rename` and short option names with `shorten`:
 
 ```python
 @click.command()
-@from_pydantic("foo", Foo, rename={"a": "--alpha", "b": "--beta"}, shorten={"a": "-A", "b": "-B"})
+@from_pydantic(Foo, rename={"a": "--alpha", "b": "--beta"}, shorten={"a": "-A", "b": "-B"})
 def cli(foo: Foo):
     pass
 ```
@@ -225,7 +234,7 @@ For example, in the following code, the user will be prompted for the value of `
 
 ```python
 @click.command()
-@from_pydantic("foo", Foo, extra_options={"a": {"prompt": True}})
+@from_pydantic(Foo, extra_options={"a": {"prompt": True}})
 def cli(foo: Foo):
     pass
 ```
@@ -248,7 +257,7 @@ class Root(BaseModel):
     x: int
 
 @click.command()
-@from_pydantic("root", Root)
+@from_pydantic(Root)
 def cli(root: Root):
     pass
 ```
@@ -270,7 +279,7 @@ To use `rename`, `shorten`, `exclude`, `extra_options` with a nested field, use 
 
 ```python
 @click.command()
-@from_pydantic("root", Root, rename={"right": "--the-other-left"})
+@from_pydantic(Root, rename={"right": "--the-other-left"})
 def cli(root: Root):
     pass
 ```
@@ -299,37 +308,39 @@ Options:
 ### pydanclick.from_pydantic
 
 ```python
-from_pydantic(__var, model, *, exclude=(), rename=None, shorten=None, prefix='', parse_docstring=True, docstring_style='google', extra_options=None)
+from_pydantic(
+    __var_or_model,
+    model=None,
+    *,
+    exclude=(),
+    rename=None,
+    shorten=None,
+    prefix=None,
+    parse_docstring=True,
+    docstring_style="google",
+    extra_options=None
+)
 ```
 
 Decorator to add fields from a Pydantic model as options to a Click command.
 
-**Example:**
-
-```python
-@click.command()
-@pydanclick.from_pydantic("arg_name", SomePydanticModel)
-def my_command(arg_name: SomePydanticModel):
-    assert isinstance(arg_name, SomePydanticModel)  # True
-```
-
 **Parameters:**
 
-- **\_\_var** (<code>[str](#str)</code>) – name of the variable that will receive the Pydantic model in the decorated function
-- **model** (<code>[type](#type)\[[BaseModel](#pydantic.BaseModel)\]</code>) – Pydantic model
-- **exclude** (<code>[Sequence](#collections.abc.Sequence)\[[str](#str)\]</code>) – field names that won't be added to the command
-- **rename** (<code>[dict](#dict)\[[str](#str), [str](#str)\] | None</code>) – a mapping from field names to command line option names (this will override any prefix). Option names
+- **\_\_var_or_model** (<code>[Union](#typing.Union)\[[str](#str), [Type](#typing.Type)\[[BaseModel](#pydantic.BaseModel)\]\]</code>) – name of the variable that will receive the Pydantic model in the decorated function
+- **model** (<code>[Optional](#typing.Optional)\[[Type](#typing.Type)\[[BaseModel](#pydantic.BaseModel)\]\]</code>) – Pydantic model
+- **exclude** (<code>[Sequence](#typing.Sequence)\[[str](#str)\]</code>) – field names that won't be added to the command
+- **rename** (<code>[Optional](#typing.Optional)\[[Dict](#typing.Dict)\[[str](#str), [str](#str)\]\]</code>) – a mapping from field names to command line option names (this will override any prefix). Option names
   must start with two dashes
-- **shorten** (<code>[dict](#dict)\[[str](#str), [str](#str)\] | None</code>) – a mapping from field names to short command line option names. Option names must start with one dash
-- **prefix** (<code>[str](#str)</code>) – a prefix to add to option names (without any dash)
+- **shorten** (<code>[Optional](#typing.Optional)\[[Dict](#typing.Dict)\[[str](#str), [str](#str)\]\]</code>) – a mapping from field names to short command line option names. Option names must start with one dash
+- **prefix** (<code>[Optional](#typing.Optional)\[[str](#str)\]</code>) – a prefix to add to option names (without any dash)
 - **parse_docstring** (<code>[bool](#bool)</code>) – if True and `griffe` is installed, parse the docstring of the Pydantic model and pass argument
   documentation to the Click `help` option
-- **docstring_style** (<code>[str](#str)</code>) – style of the docstring (`google`, `numpy` or `sphinx`). Ignored if `parse_docstring` is False
-- **extra_options** (<code>[dict](#dict)\[[str](#str), [\_ParameterKwargs](#pydanclick.main._ParameterKwargs)\] | None</code>) – a mapping from field names to a dictionary of options passed to the `click.option()` function
+- **docstring_style** (<code>[Literal](#typing.Literal)\['google', 'numpy', 'sphinx'\]</code>) – style of the docstring (`google`, `numpy` or `sphinx`). Ignored if `parse_docstring` is False
+- **extra_options** (<code>[Optional](#typing.Optional)\[[Dict](#typing.Dict)\[[str](#str), [\_ParameterKwargs](#pydanclick.types._ParameterKwargs)\]\]</code>) – a mapping from field names to a dictionary of options passed to the `click.option()` function
 
 **Returns:**
 
-- <code>[Callable](#collections.abc.Callable)\[\[[Callable](#collections.abc.Callable)\[..., T\]\], [Callable](#collections.abc.Callable)\[..., T\]\]</code> – a decorator that adds options to a function
+- <code>[Callable](#typing.Callable)\[\[[Callable](#typing.Callable)\[..., [T](#pydanclick.main.T)\]\], [Callable](#typing.Callable)\[..., [T](#pydanclick.main.T)\]\]</code> – a decorator that adds options to a function
 
 ## Contributing
 

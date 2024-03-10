@@ -1,18 +1,19 @@
 import functools
-from typing import Any, Callable, Dict, Literal, Optional, Sequence, Type, TypeVar
+from typing import Any, Callable, Dict, Literal, Optional, Sequence, Type, TypeVar, Union
 
 from pydantic import BaseModel
 
 from pydanclick.command import add_options
 from pydanclick.model import convert_to_click
 from pydanclick.types import _ParameterKwargs
+from pydanclick.utils import camel_case_to_snake_case
 
 T = TypeVar("T")
 
 
 def from_pydantic(
-    __var: str,
-    model: Type[BaseModel],
+    __var_or_model: Union[str, Type[BaseModel]],
+    model: Optional[Type[BaseModel]] = None,
     *,
     exclude: Sequence[str] = (),
     rename: Optional[Dict[str, str]] = None,
@@ -25,7 +26,7 @@ def from_pydantic(
     """Decorator to add fields from a Pydantic model as options to a Click command.
 
     Args:
-        __var: name of the variable that will receive the Pydantic model in the decorated function
+        __var_or_model: name of the variable that will receive the Pydantic model in the decorated function
         model: Pydantic model
         exclude: field names that won't be added to the command
         rename: a mapping from field names to command line option names (this will override any prefix). Option names
@@ -40,6 +41,13 @@ def from_pydantic(
     Returns:
         a decorator that adds options to a function
     """
+    if isinstance(__var_or_model, str):
+        if model is None:
+            raise ValueError("`model` must be provided")
+        variable_name = __var_or_model
+    else:
+        model = __var_or_model
+        variable_name = camel_case_to_snake_case(model.__name__)
     options, validator = convert_to_click(
         model,
         exclude=exclude,
@@ -55,7 +63,7 @@ def from_pydantic(
         @add_options(options)
         @functools.wraps(f)
         def wrapped(**kwargs: Any) -> T:
-            kwargs[__var] = validator(kwargs)
+            kwargs[variable_name] = validator(kwargs)
             return f(**kwargs)
 
         return wrapped  # type: ignore[no-any-return]
