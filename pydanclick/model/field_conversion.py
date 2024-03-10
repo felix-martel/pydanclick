@@ -86,7 +86,9 @@ def _get_base_option_name(
 
 
 def _convert_to_valid_prefix(name: str) -> str:
-    return ("--" + name.removesuffix("-").removeprefix("-").removeprefix("-")) if name else name
+    if not name:
+        return name
+    return "--" + strip_option_name(name)
 
 
 def get_option_name(
@@ -125,7 +127,9 @@ def get_option_name(
     if not is_boolean or "/" in base_name:
         return base_name
     else:
-        return OptionName(f"{base_name}/--no-{base_name.removeprefix('--')}")
+        if base_name.startswith("--"):
+            base_name = base_name[2:]
+        return OptionName(f"--{base_name}/--no-{base_name}")
 
 
 def _get_option_from_field(
