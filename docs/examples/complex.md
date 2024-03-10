@@ -1,4 +1,4 @@
-# Complex Example
+# Example: Multiple Models
 
 In this second example, we use multiple models in a single command:
 

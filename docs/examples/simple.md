@@ -26,5 +26,5 @@ Options:
 You can notice that:
 
 - fields without default values are marked as `required`
-- contraints are properly recognized by Click
+- constraints are properly recognized by Click
 - boolean fields are converted to boolean flags, as recommended by Click

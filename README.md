@@ -78,7 +78,13 @@ The following types are converted to native Click types:
 | `datetime.datetime`, `datetime.date`     | `click.DateTime()`   |
 | `Literal`                                | `click.Choice`       |
 
-More complex validators will be handled through Pydantic usual validation logic: once handled by Click, all arguments will be used to initialize Pydantic model.
+Complex container types such as lists or dicts are also supported: they must be passed as JSON strings, and will be validated through Pydantic `TypeAdapter.validate_json` method:
+
+```shell
+--arg1 '[1, 2, 3]' --arg2 '{"a": bool, "b": false}'
+```
+
+In any case, Pydantic validation will run during model instantiation.
 
 ### Add multiple models
 
@@ -222,6 +228,64 @@ For example, in the following code, the user will be prompted for the value of `
 @from_pydantic("foo", Foo, extra_options={"a": {"prompt": True}})
 def cli(foo: Foo):
     pass
+```
+
+### Add nested models
+
+Nested Pydantic models are supported, with arbitrary nesting level.
+Option names will be built by joining all parent names and the field names itself with dashes.
+
+```python
+class Left(BaseModel):
+    x: int
+
+class Right(BaseModel):
+    x: int
+
+class Root(BaseModel):
+    left: Left
+    right: Right
+    x: int
+
+@click.command()
+@from_pydantic("root", Root)
+def cli(root: Root):
+    pass
+```
+
+will give:
+
+```shell
+~ python cli.py --help
+Usage: cli.py [OPTIONS]
+
+Options:
+  --left-x INTEGER   [required]
+  --right-x INTEGER  [required]
+  --x INTEGER        [required]
+  --help             Show this message and exit.
+```
+
+To use `rename`, `shorten`, `exclude`, `extra_options` with a nested field, use its _dotted name_, e.g. `left.x` or `right.x`. Note that the alias of a field will apply to all its sub-fields:
+
+```python
+@click.command()
+@from_pydantic("root", Root, rename={"right": "--the-other-left"})
+def cli(root: Root):
+    pass
+```
+
+will give:
+
+```shell
+~ python cli.py --help
+Usage: cli.py [OPTIONS]
+
+Options:
+  --left-x INTEGER            [required]
+  --the-other-left-x INTEGER  [required]
+  --x INTEGER                 [required]
+  --help                      Show this message and exit.
 ```
 
 <!-- --8<-- [end:features] -->

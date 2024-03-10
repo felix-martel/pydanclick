@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from examples import complex, simple
+from examples import complex, complex_types, simple
 
 
 @pytest.mark.parametrize(
@@ -69,3 +69,20 @@ def test_complex_example_help():
     result = runner.invoke(complex.cli, ["--help"])
     # Ensure field description is added to the CLI documentation
     assert "Attach a description directly in the field" in result.output
+
+
+@pytest.mark.parametrize(
+    "args, expected_results",
+    [
+        ([], {}),
+        (["--mounts", "[]"], {}),
+        (["--mounts", '[["bind", ".", "."]]'], {"mounts": [["bind", ".", "."]]}),
+        (["--ports", '{"80": 80, "8888": 8888}'], {"ports": {"80": 80, "8888": 8888}}),
+    ],
+)
+def test_complex_types_example(args, expected_results):
+    """Ensure the 'complex_types' examples works."""
+    runner = CliRunner()
+    result = runner.invoke(complex_types.cli, ["--image", "foo", *args])
+    assert result.exit_code == 0
+    assert json.loads(result.output) == {"image": "foo", "mounts": [], "ports": {}} | expected_results
