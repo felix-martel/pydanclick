@@ -63,7 +63,7 @@ def convert_fields_to_options(
 
 def _get_base_option_name(
     dotted_name: DottedFieldName, aliases: Dict[DottedFieldName, OptionName], prefix: str = ""
-) -> OptionName:
+) -> str:
     parents = dotted_name.split(".")
     for i in range(len(parents) + 1, 0, -1):
         parent = DottedFieldName(".".join(parents[:i]))
@@ -77,12 +77,12 @@ def _get_base_option_name(
                     f"Invalid boolean alias `{alias}` for field `{parent}`: boolean aliases can only be used for "
                     f"boolean fields, however `{parent}` has child field `{suffix}`."
                 )
-            return OptionName(alias + "-" + suffix)
+            return alias + "-" + suffix
         return alias
     if prefix:
-        return OptionName(snake_case_to_kebab_case("-".join((prefix, *parents))))
+        return snake_case_to_kebab_case("-".join((prefix, *parents)))
     else:
-        return OptionName("--" + snake_case_to_kebab_case(dotted_name))
+        return "--" + snake_case_to_kebab_case(dotted_name)
 
 
 def _convert_to_valid_prefix(name: str) -> str:
@@ -125,7 +125,7 @@ def get_option_name(
     """
     base_name = _get_base_option_name(dotted_name, aliases=aliases, prefix=prefix)
     if not is_boolean or "/" in base_name:
-        return base_name
+        return OptionName(base_name)
     else:
         if base_name.startswith("--"):
             base_name = base_name[2:]
