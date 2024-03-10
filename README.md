@@ -78,7 +78,13 @@ The following types are converted to native Click types:
 | `datetime.datetime`, `datetime.date`     | `click.DateTime()`   |
 | `Literal`                                | `click.Choice`       |
 
-More complex validators will be handled through Pydantic usual validation logic: once handled by Click, all arguments will be used to initialize Pydantic model.
+Complex container types such as lists or dicts are also supported: they must be passed as JSON strings, and will be validated through Pydantic `TypeAdapter.validate_json` method:
+
+```shell
+--arg1 '[1, 2, 3]' --arg2 '{"a": bool, "b": false}'
+```
+
+In any case, Pydantic validation will run during model instantiation.
 
 ### Add multiple models
 
@@ -224,6 +230,64 @@ def cli(foo: Foo):
     pass
 ```
 
+### Add nested models
+
+Nested Pydantic models are supported, with arbitrary nesting level.
+Option names will be built by joining all parent names and the field names itself with dashes.
+
+```python
+class Left(BaseModel):
+    x: int
+
+class Right(BaseModel):
+    x: int
+
+class Root(BaseModel):
+    left: Left
+    right: Right
+    x: int
+
+@click.command()
+@from_pydantic("root", Root)
+def cli(root: Root):
+    pass
+```
+
+will give:
+
+```shell
+~ python cli.py --help
+Usage: cli.py [OPTIONS]
+
+Options:
+  --left-x INTEGER   [required]
+  --right-x INTEGER  [required]
+  --x INTEGER        [required]
+  --help             Show this message and exit.
+```
+
+To use `rename`, `shorten`, `exclude`, `extra_options` with a nested field, use its _dotted name_, e.g. `left.x` or `right.x`. Note that the alias of a field will apply to all its sub-fields:
+
+```python
+@click.command()
+@from_pydantic("root", Root, rename={"right": "--the-other-left"})
+def cli(root: Root):
+    pass
+```
+
+will give:
+
+```shell
+~ python cli.py --help
+Usage: cli.py [OPTIONS]
+
+Options:
+  --left-x INTEGER            [required]
+  --the-other-left-x INTEGER  [required]
+  --x INTEGER                 [required]
+  --help                      Show this message and exit.
+```
+
 <!-- --8<-- [end:features] -->
 
 ## API Reference
@@ -288,10 +352,9 @@ pytest
 `pydanclick` doesn't support (yet!):
 
 - Pydantic v1
-- Nested models
-- Container types (tuples, lists, dicts) or other complex types
-- Converting fields to arguments, instead of options
-- Some union types won't work
+- converting fields to arguments, instead of options
+- fields annotated with union of Pydantic models can only be used with JSON inputs, instead of properly merging all sub-fields
+- custom argument validators
 
 Other missing features:
 
@@ -299,6 +362,8 @@ Other missing features:
 - Specifying all field-specific options directly in the Pydantic model (would allow easier re-use)
 - Most Click features should be supported out-of-the-box through the `extra_options` parameter. However, most of them aren't tested
 - Click and Pydantic both include validation logic. In particular, Click support custom `ParamType`, validation callbacks and `BadParameter` errors: it's not clear if we want to fully rely on Pydantic or on Click or on a mixture of both
+- populating Pydantic fields from existing options or arguments (combined with `exclude`, it will provide a complete escape hatch to bypass Pydantclick when needed)
+- attaching Pydanclick arguments directly to the model class, to avoid duplication when re-using a model in multiple commands
 
 <!--  --8<-- [end:limitations] -->
 

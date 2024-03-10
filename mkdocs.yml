@@ -11,8 +11,10 @@ nav:
   - Home: index.md
   - API Reference: api_reference.md
   - Examples:
-      - Simple: examples/simple.md
-      - Complex: examples/complex.md
+      - Simple Example: examples/simple.md
+      - Multiple Models: examples/complex.md
+      - Nested Models: examples/nested.md
+      - Complex Types: examples/complex_types.md
   - Contributing: contributing.md
 plugins:
   - search

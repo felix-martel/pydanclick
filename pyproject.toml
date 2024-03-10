@@ -92,6 +92,8 @@ ignore = [
     "E501",
     # DoNotAssignLambda
     "E731",
+    # Long messages in exception
+    "TRY003",
 ]
 
 [tool.ruff.format]
