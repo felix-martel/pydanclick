@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from examples import complex, complex_types, simple
+from examples import complex, complex_types, reuse_models, simple
 
 
 @pytest.mark.parametrize(
@@ -86,3 +86,27 @@ def test_complex_types_example(args, expected_results):
     result = runner.invoke(complex_types.cli, ["--image", "foo", *args])
     assert result.exit_code == 0
     assert json.loads(result.output) == {"image": "foo", "mounts": [], "ports": {}, **expected_results}
+
+
+@pytest.mark.parametrize(
+    "args, expected_results",
+    [
+        (["foo"], {}),
+        (["bar"], {}),
+        (["foo", "-l", "30"], {"level": 30}),
+        (["foo", "--log-level", "30"], {"level": 30}),
+        (["bar", "-l", "30"], {"level": 30}),
+        (["bar", "--logging-level", "30"], {"level": 30}),
+    ],
+)
+def test_reuse_models_example(args, expected_results):
+    """Ensure the 'reuse_models' examples works."""
+    runner = CliRunner()
+    result = runner.invoke(reuse_models.cli, args)
+    assert result.exit_code == 0
+    assert json.loads(result.output) == {
+        "filename": "app.log",
+        "level": 20,
+        "record_format": "%(message)s",
+        **expected_results,
+    }
