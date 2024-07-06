@@ -1,15 +1,16 @@
 """Convert a Pydantic model to Click options, and provide function to convert Click arguments back to Pydantic."""
 
 import functools
-from typing import Callable, Dict, List, Literal, Optional, Sequence, Set, Tuple, Type, TypeVar, cast
+from typing import Callable, Dict, List, Literal, Optional, Sequence, Tuple, Type, TypeVar
 
 import click
 from pydantic import BaseModel
 
+from pydanclick.model.config import get_config
 from pydanclick.model.field_collection import collect_fields
 from pydanclick.model.field_conversion import convert_fields_to_options
 from pydanclick.model.validation import model_validate_kwargs
-from pydanclick.types import DottedFieldName, OptionName, _ParameterKwargs
+from pydanclick.types import _ParameterKwargs
 
 T = TypeVar("T")
 M = TypeVar("M", bound=BaseModel)
@@ -22,7 +23,7 @@ def convert_to_click(
     rename: Optional[Dict[str, str]] = None,
     shorten: Optional[Dict[str, str]] = None,
     prefix: Optional[str] = None,
-    parse_docstring: bool = True,
+    parse_docstring: Optional[bool] = None,
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
     extra_options: Optional[Dict[str, _ParameterKwargs]] = None,
 ) -> Tuple[List[click.Option], Callable[..., M]]:
@@ -61,20 +62,28 @@ def convert_to_click(
         a pair `(options, validate)` where `options` is the list of Click options extracted from the model, and
             `validate` is a function that can instantiate a model from the list of arguments parsed by Click
     """
-    # We're doing a lot of casting here, to convert regular strings provided by the user into specific string types
-    # used internally to disambiguate the different names associated with a field (option, argument, dotted...)
+    config = get_config(
+        model,
+        exclude=exclude,
+        rename=rename,
+        shorten=shorten,
+        prefix=prefix,
+        parse_docstring=parse_docstring,
+        docstring_style=docstring_style,
+        extra_options=extra_options,
+    )
     fields = collect_fields(
         obj=model,
-        excluded_fields=cast(Set[DottedFieldName], set(exclude)),
-        docstring_style=docstring_style,
-        parse_docstring=parse_docstring,
+        excluded_fields=config.exclude,
+        docstring_style=config.docstring_style,
+        parse_docstring=config.parse_docstring,
     )
     qualified_names, options = convert_fields_to_options(
         fields,
-        prefix=prefix,
-        aliases=cast(Optional[Dict[DottedFieldName, OptionName]], rename),
-        shorten=cast(Optional[Dict[DottedFieldName, OptionName]], shorten),
-        extra_options=cast(Dict[DottedFieldName, _ParameterKwargs], extra_options),
+        prefix=config.prefix,
+        aliases=config.aliases,
+        shorten=config.shorten,
+        extra_options=config.extra_options,
     )
     validator = functools.partial(model_validate_kwargs, model=model, qualified_names=qualified_names)
     return options, validator

@@ -15,6 +15,7 @@ nav:
       - Multiple Models: examples/complex.md
       - Nested Models: examples/nested.md
       - Complex Types: examples/complex_types.md
+      - Reuse Models: examples/reuse_models.md
   - Contributing: contributing.md
 plugins:
   - search

@@ -1,7 +1,7 @@
-from typing import Any, Optional, TypedDict, Union
+from typing import Any, Optional, Union
 
 import click
-from typing_extensions import NewType
+from typing_extensions import NewType, TypedDict
 
 
 class _ParameterKwargs(TypedDict, total=False):

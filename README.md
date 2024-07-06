@@ -63,20 +63,9 @@ Options:
 
 ### Use native Click types
 
-The following types are converted to native Click types:
-
-| Pydantic type                            | Converted to         |
-| :--------------------------------------- | :------------------- |
-| `bool`                                   | `click.BOOL`         |
-| `str`                                    | `click.STRING`       |
-| `int`                                    | `click.INT`          |
-| `float`                                  | `click.FLOAT`        |
-| `Annotated[int, Field(lt=..., ge=...)`   | `click.IntRange()`   |
-| `Annotated[float, Field(lt=..., ge=...)` | `click.FloatRange()` |
-| `pathlib.Path`                           | `click.Path()`       |
-| `uuid.UUID`                              | `click.UUID`         |
-| `datetime.datetime`, `datetime.date`     | `click.DateTime()`   |
-| `Literal`                                | `click.Choice`       |
+- most common types are converted to native Click types: `bool`, `str`, `int`, `float`, `pathlib.Path`, `uuid.UUID`, `datetime.datetime`, `datetime.date`
+- constrained numeric fields such as `Annotated[int, Field(lt=..., gt=...)]` are converted to `click.IntRange()` or `click.FloatRange()`
+- `Literal` fields are converted to `click.Choice`
 
 Complex container types such as lists or dicts are also supported: they must be passed as JSON strings, and will be validated through Pydantic `TypeAdapter.validate_json` method:
 
@@ -296,6 +285,39 @@ Options:
   --x INTEGER                 [required]
   --help                      Show this message and exit.
 ```
+
+### Attach options directly to a model
+
+If you're injecting the same Pydantic model into different Click commands, you may want to attach some options directly to the model itself, by storing them in a `__pydanclick__` class attribute:
+
+```python
+class MyModel(BaseModel):
+    __pydanclick__ = {
+      "prefix": "pref",
+      "exclude": ["a", "b"]
+    }
+```
+
+All arguments to `from_pydantic` can be used. You can always override specific arguments when defining a new command:
+
+```python
+# Here, options will be prefixed by `other-pref`
+@click.command()
+@from_pydantic(MyModel, prefix="other-pref")
+def foo(my_model):
+    pass
+```
+
+For convenience, you can store these options in a `PydanclickConfig` object to enable completion, type checking and validation:
+
+```python
+from pydanclick import PydanclickConfig
+
+class MyModel(BaseModel):
+  __pydanclick__ = PydanclickConfig(prefix="pref", exclude=["a", "b"])
+```
+
+See the _Reuse models_ example for a full example.
 
 <!-- --8<-- [end:features] -->
 
