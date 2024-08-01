@@ -318,7 +318,8 @@ from_pydantic(
     prefix=None,
     parse_docstring=True,
     docstring_style="google",
-    extra_options=None
+    extra_options=None,
+    defer_set_default=False,
 )
 ```
 
@@ -337,6 +338,7 @@ Decorator to add fields from a Pydantic model as options to a Click command.
   documentation to the Click `help` option
 - **docstring_style** (<code>[Literal](#typing.Literal)\['google', 'numpy', 'sphinx'\]</code>) – style of the docstring (`google`, `numpy` or `sphinx`). Ignored if `parse_docstring` is False
 - **extra_options** (<code>[Optional](#typing.Optional)\[[Dict](#typing.Dict)\[[str](#str), [\_ParameterKwargs](#pydanclick.types._ParameterKwargs)\]\]</code>) – a mapping from field names to a dictionary of options passed to the `click.option()` function
+- **defer_set_default** (<code>[bool](#bool)</code>) – if True, the default value will not be set from `click` and instead is deferred to the Pydantic model
 
 **Returns:**
 

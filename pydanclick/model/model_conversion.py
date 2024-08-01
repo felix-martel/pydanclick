@@ -25,6 +25,7 @@ def convert_to_click(
     parse_docstring: bool = True,
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
     extra_options: Optional[Dict[str, _ParameterKwargs]] = None,
+    defer_set_default: bool = False,
 ) -> Tuple[List[click.Option], Callable[..., M]]:
     """Extract Click options from a Pydantic model.
 
@@ -56,6 +57,7 @@ def convert_to_click(
         docstring_style: docstring style of the model. Only used if `parse_docstring=True`
         extra_options: extra options to pass to `click.Option` for specific fields, as a mapping from dotted field names
             to option dictionary
+        defer_set_default: if True, the default value will not be set from click and instead is deferred to the pydantic model
 
     Returns:
         a pair `(options, validate)` where `options` is the list of Click options extracted from the model, and
@@ -76,5 +78,11 @@ def convert_to_click(
         shorten=cast(Optional[Dict[DottedFieldName, OptionName]], shorten),
         extra_options=cast(Dict[DottedFieldName, _ParameterKwargs], extra_options),
     )
-    validator = functools.partial(model_validate_kwargs, model=model, qualified_names=qualified_names)
+
+    defaults_to_ignore = {}
+    if defer_set_default:
+        defaults_to_ignore = {option.name: option.default for option in options if option.default is not None}
+    validator = functools.partial(
+        model_validate_kwargs, model=model, qualified_names=qualified_names, defaults_to_ignore=defaults_to_ignore
+    )
     return options, validator

@@ -21,7 +21,10 @@ K = TypeVar("K", bound=str)
 
 
 def model_validate_kwargs(
-    kwargs: Dict[ArgumentName, Any], model: Type[M], qualified_names: Dict[ArgumentName, DottedFieldName]
+    kwargs: Dict[ArgumentName, Any],
+    model: Type[M],
+    qualified_names: Dict[ArgumentName, DottedFieldName],
+    defaults_to_ignore: Dict[str, Any],
 ) -> M:
     """Instantiate `model` for keyword arguments.
 
@@ -37,11 +40,12 @@ def model_validate_kwargs(
         kwargs: mapping from argument name to their values
         model: Pydantic model to instantiate
         qualified_names: a mapping from argument names to corresponding dotted field names
+        defaults_to_ignore: mapping from agument name to a default to ignore
 
     Returns:
         an instance of `model` with the provided values
     """
-    flat_model = _parse_options(qualified_names, kwargs)
+    flat_model = _parse_options(qualified_names, kwargs, defaults_to_ignore)
     raw_model = _unflatten_dict(flat_model)
     return model.model_validate(raw_model)
 
@@ -69,18 +73,22 @@ def _unflatten_dict(d: Dict[K, V], sep: str = ".") -> Dict[str, Any]:
 
 
 def _parse_options(
-    aliases: Dict[ArgumentName, DottedFieldName], kwargs: Dict[ArgumentName, V]
+    aliases: Dict[ArgumentName, DottedFieldName], kwargs: Dict[ArgumentName, V], defaults_to_ignore: Dict[str, Any]
 ) -> Dict[DottedFieldName, V]:
     """Extract keys and values from `kwargs`.
 
     Args:
         aliases: mapping from argument name to field name
         kwargs: mapping from argument name to their values. Note that `kwargs` will be modified in-place
+        defaults_to_ignore: mapping from agument name to a default to ignore
 
     Returns:
         mapping from field name to their values
     """
     parsed = {}
     for key in aliases.keys() & kwargs.keys():
-        parsed[aliases[key]] = kwargs.pop(key)
+        value = kwargs.pop(key)
+        default = defaults_to_ignore.get(key)
+        if value is not None and (default is None or default != value):
+            parsed[aliases[key]] = value
     return parsed
