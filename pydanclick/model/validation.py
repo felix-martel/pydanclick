@@ -40,7 +40,7 @@ def model_validate_kwargs(
         kwargs: mapping from argument name to their values
         model: Pydantic model to instantiate
         qualified_names: a mapping from argument names to corresponding dotted field names
-        defaults_to_ignore: mapping from agument name to a default to ignore
+        defaults_to_ignore: mapping from argument name to a default to ignore
 
     Returns:
         an instance of `model` with the provided values
@@ -80,7 +80,7 @@ def _parse_options(
     Args:
         aliases: mapping from argument name to field name
         kwargs: mapping from argument name to their values. Note that `kwargs` will be modified in-place
-        defaults_to_ignore: mapping from agument name to a default to ignore
+        defaults_to_ignore: mapping from argument name to a default to ignore
 
     Returns:
         mapping from field name to their values
