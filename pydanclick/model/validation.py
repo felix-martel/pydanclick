@@ -82,5 +82,7 @@ def _parse_options(
     """
     parsed = {}
     for key in aliases.keys() & kwargs.keys():
-        parsed[aliases[key]] = kwargs.pop(key)
+        value = kwargs.pop(key)
+        if value is not None:
+            parsed[aliases[key]] = value
     return parsed

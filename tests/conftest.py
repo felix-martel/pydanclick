@@ -4,6 +4,8 @@ from typing import Iterable
 import click
 from _pytest.python_api import RaisesContext
 
+from pydanclick.model.type_conversion import PydanclickParamType
+
 
 def assert_option_equals(actual: click.Option, expected: click.Option) -> None:
     assert actual.__dict__ == expected.__dict__
@@ -14,6 +16,8 @@ def assert_options_equals(actuals: Iterable[click.Option], expecteds: Iterable[c
     expecteds = sorted(expecteds, key=lambda o: o.name)
     assert len(actuals) == len(expecteds), f"Different number of options: {len(actuals)} != {len(expecteds)}"
     for i, (actual, expected) in enumerate(zip(actuals, expecteds)):
+        if isinstance(actual.type, PydanclickParamType):
+            actual.type = actual.type.actual_type
         assert (
             actual.__dict__ == expected.__dict__
         ), f"Different option at index {i}: {actual.__dict__} != {expected.__dict__}"
