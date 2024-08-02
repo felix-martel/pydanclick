@@ -21,9 +21,7 @@ K = TypeVar("K", bound=str)
 
 
 def model_validate_kwargs(
-    kwargs: Dict[ArgumentName, Any],
-    model: Type[M],
-    qualified_names: Dict[ArgumentName, DottedFieldName],
+    kwargs: Dict[ArgumentName, Any], model: Type[M], qualified_names: Dict[ArgumentName, DottedFieldName]
 ) -> M:
     """Instantiate `model` for keyword arguments.
 

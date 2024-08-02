@@ -76,6 +76,5 @@ def convert_to_click(
         shorten=cast(Optional[Dict[DottedFieldName, OptionName]], shorten),
         extra_options=cast(Dict[DottedFieldName, _ParameterKwargs], extra_options),
     )
-
     validator = functools.partial(model_validate_kwargs, model=model, qualified_names=qualified_names)
     return options, validator

@@ -318,7 +318,7 @@ from_pydantic(
     prefix=None,
     parse_docstring=True,
     docstring_style="google",
-    extra_options=None,
+    extra_options=None
 )
 ```
 

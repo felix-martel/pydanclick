@@ -33,16 +33,6 @@ class PydanclickParamType(click.ParamType):
     def actual_type(self) -> click.ParamType:
         return self._actual_type
 
-    @property
-    def __class__(self) -> Type[Any]:
-        # Allows callers to use the actual click.ParamType class when determining type
-        return self._actual_type.__class__
-
-    @__class__.setter
-    def __class__(self, __new_class__: Any) -> None:
-        # On set pass to wrapper class value.
-        self.__class__ = __new_class__
-
     def convert(self, value: Any, param: click.Parameter | None, ctx: click.Context | None) -> Any:
         if isinstance(value, PydanclickDefault):
             return None
@@ -50,6 +40,18 @@ class PydanclickParamType(click.ParamType):
 
     def __getattr__(self, attr: Any) -> Any:
         return getattr(self._actual_type, attr)
+
+
+def _get_pydanclick_type(field_type):
+    pydanclick_type: Type[click.ParamType] = type(
+        "PydanclickParamType",
+        (
+            PydanclickParamType,
+            field_type.__class__,
+        ),
+        {},
+    )
+    return pydanclick_type(field_type)
 
 
 class PydanclickDefault:
@@ -143,7 +145,7 @@ def _get_type_from_field(field: FieldInfo) -> click.ParamType:
     Returns:
         a Click type
     """
-    return PydanclickParamType(_get_click_type_from_field(field))
+    return _get_pydanclick_type(_get_click_type_from_field(field))
 
 
 def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
