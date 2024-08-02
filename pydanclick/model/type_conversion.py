@@ -67,6 +67,9 @@ class PydanclickDefault:
     def __bool__(self) -> bool:
         return bool(self._default)
 
+    def __repr__(self) -> Any:
+        return self._default.__repr__()
+
 
 class PydanclickDefaultCallable(PydanclickDefault):
     """Represents a callable default value in pydanclick"""
