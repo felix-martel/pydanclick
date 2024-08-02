@@ -60,15 +60,3 @@ def test_from_pydantic_with_invalid_call():
         @from_pydantic("foo")
         def cli(foo):
             pass
-
-
-def test_disabled_default():
-    @click.command()
-    @from_pydantic("obj", Obj, defer_set_default=True)
-    def cli(obj: Obj):
-        click.echo(obj.model_dump_json(indent=2))
-
-    runner = CliRunner()
-    result = runner.invoke(cli, ["--no-foo-b", "--bar-baz-c", "b", "--bar-a", "0.5"])
-    print(result.output)
-    assert Obj.model_validate_json(result.output) == Obj(foo=Foo(b=False), bar=Bar(a=0.5, baz=Baz(c="b")))

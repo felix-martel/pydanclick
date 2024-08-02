@@ -7,7 +7,7 @@ from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
 from pydanclick.model.field_collection import _Field
-from pydanclick.model.type_conversion import _get_type_from_field
+from pydanclick.model.type_conversion import PydanclickDefault, PydanclickDefaultCallable, _get_type_from_field
 from pydanclick.types import ArgumentName, DottedFieldName, OptionName, _ParameterKwargs
 from pydanclick.utils import kebab_case_to_snake_case, snake_case_to_kebab_case, strip_option_name
 
@@ -177,8 +177,9 @@ def _get_default_value_from_field(field: FieldInfo) -> Union[Any, Callable[[], A
     Returns:
         either the default value or the default factory or None if field has no default
     """
-    if field.default is not PydanticUndefined:
-        return field.default
-    elif field.default_factory is not None:
-        return field.default_factory
+    if field.default is not None:
+        if field.default is not PydanticUndefined:
+            return PydanclickDefault(field.default)
+        elif field.default_factory is not None:
+            return PydanclickDefaultCallable(field.default_factory)
     return None

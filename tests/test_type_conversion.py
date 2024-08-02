@@ -15,7 +15,7 @@ def test_get_type_from_field_with_unconstrained_int():
         a: int
 
     click_type = _get_type_from_field(Foo.model_fields["a"])
-    assert click_type == click.INT
+    assert click_type.actual_type == click.INT
 
 
 def test_get_type_from_field_with_constrained_int():
