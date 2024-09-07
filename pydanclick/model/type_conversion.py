@@ -42,8 +42,8 @@ class PydanclickParamType(click.ParamType):
         return getattr(self._actual_type, attr)
 
 
-def _get_pydanclick_type(field_type):
-    pydanclick_type: Type[click.ParamType] = type(
+def _get_pydanclick_type(field_type: click.ParamType) -> click.ParamType:
+    pydanclick_type: Type[PydanclickParamType] = type(
         "PydanclickParamType",
         (
             PydanclickParamType,
