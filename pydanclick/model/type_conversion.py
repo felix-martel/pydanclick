@@ -3,7 +3,7 @@
 import datetime
 import re
 from pathlib import Path
-from typing import Any, List, Literal, Type, TypedDict, Union, cast, get_args, get_origin
+from typing import Any, List, Literal, Optional, Type, TypedDict, Union, cast, get_args, get_origin
 from uuid import UUID
 
 import click
@@ -33,7 +33,7 @@ class PydanclickParamType(click.ParamType):
     def actual_type(self) -> click.ParamType:
         return self._actual_type
 
-    def convert(self, value: Any, param: click.Parameter | None, ctx: click.Context | None) -> Any:
+    def convert(self, value: Any, param: Optional[click.Parameter], ctx: Optional[click.Context]) -> Any:
         if isinstance(value, PydanclickDefault):
             return None
         return self._actual_type.convert(value, param, ctx)
