@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydanclick"
-version = "0.2.1"
+version = "0.3.0"
 description = "Use Pydantic models as Click options"
 authors = ["Félix Martel <felix.martel@polytechnique.edu>"]
 repository = "https://github.com/felix-martel/pydanclick"
