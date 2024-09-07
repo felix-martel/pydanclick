@@ -3,7 +3,7 @@
 import datetime
 import re
 from pathlib import Path
-from typing import Any, List, Literal, Type, TypedDict, Union, get_args, get_origin
+from typing import Any, List, Literal, Type, TypedDict, Union, cast, get_args, get_origin
 from uuid import UUID
 
 import click
@@ -21,6 +21,63 @@ class _RangeDict(TypedDict, total=False):
     min: Union[SupportsGt, SupportsGe]
     max_open: bool
     min_open: bool
+
+
+class PydanclickParamType(click.ParamType):
+    """Wraps a click.ParamType to allow selective overriding of behavior"""
+
+    def __init__(self, actual_type: click.ParamType) -> None:
+        self._actual_type = actual_type
+
+    @property
+    def actual_type(self) -> click.ParamType:
+        return self._actual_type
+
+    def convert(self, value: Any, param: click.Parameter | None, ctx: click.Context | None) -> Any:
+        if isinstance(value, PydanclickDefault):
+            return None
+        return self._actual_type.convert(value, param, ctx)
+
+    def __getattr__(self, attr: Any) -> Any:
+        return getattr(self._actual_type, attr)
+
+
+def _get_pydanclick_type(field_type):
+    pydanclick_type: Type[click.ParamType] = type(
+        "PydanclickParamType",
+        (
+            PydanclickParamType,
+            field_type.__class__,
+        ),
+        {},
+    )
+    return pydanclick_type(field_type)
+
+
+class PydanclickDefault:
+    """Represents a default value in pydanclick"""
+
+    def __init__(self, default: Any) -> None:
+        self._default = default
+
+    def __getattr__(self, attr: Any) -> Any:
+        return getattr(self._default, attr)
+
+    def __eq__(self, value: object) -> Any:
+        return self._default.__eq__(value)
+
+    def __bool__(self) -> bool:
+        return bool(self._default)
+
+    def __repr__(self) -> Any:
+        return self._default.__repr__()
+
+
+class PydanclickDefaultCallable(PydanclickDefault):
+    """Represents a callable default value in pydanclick"""
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self._default.__call__(*args, **kwargs)
 
 
 def _get_range_from_metadata(metadata: List[Any]) -> _RangeDict:
@@ -88,6 +145,24 @@ def _get_type_from_field(field: FieldInfo) -> click.ParamType:
     Returns:
         a Click type
     """
+    return _get_pydanclick_type(_get_click_type_from_field(field))
+
+
+def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
+    """Get the Click type for a Pydantic field.
+
+    Pydantic and Click both define custom types for validating arguments. This function attempts to map Pydantic field
+    types to Click `ParamType` instances, on a best effort basis. Pydantic types may be stricted than their Click
+    counterparts: in that case, validation will happen when instantiating the Pydantic model, not when Click parses
+    the CLI arguments. When no equivalent is found, Click won't perform any validation and Pydantic will receive raw
+    strings.
+
+    Args:
+        field: field to convert
+
+    Returns:
+        a Click type
+    """
     field_type = field.annotation
     field_args = get_args(field_type)
     field_origin = get_origin(field_type)
@@ -122,7 +197,7 @@ def _get_type_from_field(field: FieldInfo) -> click.ParamType:
 def _create_custom_type(field: FieldInfo) -> click.ParamType:
     """Create a custom Click type from a Pydantic field."""
     name = "".join(part.capitalize() for part in re.split(r"\W", str(field.annotation)) if part)
-    type_adapter = TypeAdapter(field.annotation)
+    type_adapter = TypeAdapter(cast(Type[Any], field.annotation))
 
     def convert(self, value, param, ctx):  # type: ignore[no-untyped-def]
         try:

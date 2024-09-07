@@ -15,7 +15,15 @@ def test_get_type_from_field_with_unconstrained_int():
         a: int
 
     click_type = _get_type_from_field(Foo.model_fields["a"])
-    assert click_type == click.INT
+    assert isinstance(click_type, click.types.IntParamType)
+
+
+def test_get_type_from_field_with_unconstrained_bool():
+    class Foo(BaseModel):
+        a: bool
+
+    click_type = _get_type_from_field(Foo.model_fields["a"])
+    assert isinstance(click_type, click.types.BoolParamType)
 
 
 def test_get_type_from_field_with_constrained_int():
