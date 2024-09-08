@@ -84,7 +84,10 @@ def _iter_union(field_type: Any) -> List[Type[Any]]:
 
 def _is_pydantic_model(model: Any) -> TypeGuard[Type[BaseModel]]:
     """Return True if `model` is a Pydantic `BaseModel` class."""
-    return isinstance(model, type) and issubclass(model, BaseModel)
+    try:
+        return issubclass(model, BaseModel)
+    except TypeError:
+        return False
 
 
 def _collect_fields(
