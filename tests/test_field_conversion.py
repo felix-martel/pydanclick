@@ -61,4 +61,4 @@ def test_get_option_name(name, aliases, prefix, is_boolean, expected_result):
     assert get_option_name(name, aliases=aliases, prefix=prefix, is_boolean=is_boolean) == expected_result
 
 
-# TODO: ensure prefix is correctly preprended to the argument name
+# TODO: ensure prefix is correctly prepended to the argument name

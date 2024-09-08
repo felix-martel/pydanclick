@@ -81,7 +81,7 @@ class PydanclickDefaultCallable(PydanclickDefault):
 
 
 def _get_range_from_metadata(metadata: List[Any]) -> _RangeDict:
-    """Convert Pydantic numerical constraints to keyword argumetns compatible with `IntRange` and `FloatRange`.
+    """Convert Pydantic numerical constraints to keyword arguments compatible with `IntRange` and `FloatRange`.
 
     Args:
         metadata: list of Pydantic constraints
@@ -170,7 +170,7 @@ def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
     # TODO: handle subclasses
     if field_origin is Union and len(field_args) == 2 and NoneType in field_args and field.default is None:
         # Optional types where None is only used as a default value can be safely treated as a
-        # non-optional type, since Click doesn't really distinguish between a strign with default value None from
+        # non-optional type, since Click doesn't really distinguish between a string with default value None from
         # an actual str
         field_type = next(field_arg for field_arg in field_args if field_arg is not None)
     if field_type is str:
