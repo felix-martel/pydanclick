@@ -3,10 +3,10 @@ from typing import Dict, List
 import click
 import pytest
 from click.testing import CliRunner
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from pydanclick import from_pydantic
-from tests.base_models import Bar, Baz, Foo, Obj
+from tests.base_models import Bar, Baz, Foo, Foos, NestedFoos, Obj, OptionalFoos
 
 
 class Config(BaseModel):
@@ -60,3 +60,44 @@ def test_from_pydantic_with_invalid_call():
         @from_pydantic("foo")
         def cli(foo):
             pass
+
+
+def test_unpack_list():
+    @click.command()
+    @from_pydantic(Foos, unpack_list=True)
+    def cli(foos: Foos):
+        click.echo(foos.model_dump_json(indent=2))
+
+    result = CliRunner().invoke(cli, ["--foos-a", "2"])
+    assert Foos.model_validate_json(result.output) == Foos(foos=[Foo(a=2)])
+
+    result = CliRunner().invoke(cli, ["--foos-a", "2", "--no-foos-b"])
+    assert Foos.model_validate_json(result.output) == Foos(foos=[Foo(a=2, b=False)])
+
+    result = CliRunner().invoke(cli, ["--foos-a", "2", "--foos-a", "3"])
+    assert Foos.model_validate_json(result.output) == Foos(foos=[Foo(a=2), Foo(a=3)])
+
+    with pytest.raises(ValidationError):
+        CliRunner().invoke(cli, [], catch_exceptions=False)
+
+
+def test_unpack_list_with_default_factory():
+    @click.command()
+    @from_pydantic("foos", OptionalFoos, unpack_list=True)
+    def cli(foos: OptionalFoos):
+        click.echo(foos.model_dump_json(indent=2))
+
+    result = CliRunner().invoke(cli, [], catch_exceptions=False)
+    assert OptionalFoos.model_validate_json(result.output) == OptionalFoos(foos=[])
+
+
+@pytest.mark.xfail(reason="`model_validate_kwargs()` doesn't support nested fields")
+def test_unpack_list_with_nested_list():
+    @click.command()
+    @from_pydantic("nested", NestedFoos, unpack_list=True)
+    def cli(nested: NestedFoos):
+        click.echo(nested.model_dump_json(indent=2))
+
+    result = CliRunner().invoke(cli, ["--nested-foos-a", "2", "--no-nested-foos-b", "--nested-foos-a", "3"])
+    assert result.exit_code == 0
+    assert NestedFoos.model_validate_json(result.output) == NestedFoos(nested=Foos(foos=[Foo(a=2, b=False), Foo(a=3)]))
