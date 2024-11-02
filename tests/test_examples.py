@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from examples import complex, complex_types, simple
+from examples import complex, complex_types, known_types, simple
 
 
 @pytest.mark.parametrize(
@@ -96,3 +96,31 @@ def test_complex_types_example_help():
     result = runner.invoke(complex_types.cli, ["--help"])
     assert result.exit_code == 0
     assert "--ports JSON STRING   port binding  [default: <class 'dict'>]" in result.output
+
+
+@pytest.mark.parametrize(
+    "args, expected",
+    [
+        ([], {}),
+        (["--secret", "secret"], {"secret": "**********"}),
+        (["--url", "https://docs.pydantic.dev"], {"url": "https://docs.pydantic.dev/"}),
+        (["--name-email", "john.doe@acme.net"], {"name_email": "john.doe <john.doe@acme.net>"}),
+        (["--ip", "::1", "--net", "127.0.0.0/8"], {"ip": "::1", "net": "127.0.0.0/8"}),
+    ],
+)
+def test_known_types_example(args, expected):
+    """Ensure the 'known_types' examples works."""
+    runner = CliRunner()
+    result = runner.invoke(known_types.cli, args)
+    assert result.exit_code == 0
+    assert json.loads(result.output) == expected
+
+
+def test_known_types_example_help():
+    """Ensure the 'known_types' help show customized metavars."""
+    runner = CliRunner()
+    result = runner.invoke(known_types.cli, ["--help"])
+    assert result.exit_code == 0
+    assert "--secret SECRET" in result.output
+    assert "--url URL" in result.output
+    assert "--ip IP" in result.output

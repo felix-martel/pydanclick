@@ -1,9 +1,11 @@
-from typing import List, Literal, Union
+from ipaddress import IPv4Address, IPv4Interface, IPv4Network, IPv6Address, IPv6Interface, IPv6Network
+from typing import List, Literal, Optional, Union
 
 import click
 import pytest
 from click import BadParameter
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretBytes, SecretStr
+from pydantic.networks import EmailStr, HttpUrl, IPvAnyAddress, IPvAnyInterface, IPvAnyNetwork, NameEmail, PostgresDsn
 from typing_extensions import Annotated
 
 from pydanclick.model.type_conversion import _get_type_from_field
@@ -68,11 +70,65 @@ def test_get_type_from_field_with_constrained_int():
         (Union[float, str], "3.14", 3.14),
         (List[str], "[]", []),
         (List[str], """["1", "2", "3", "4"]""", ["1", "2", "3", "4"]),
+        # Pydantic types
+        (SecretStr, "my-secret", SecretStr("my-secret")),
+        (SecretBytes, "my-secret", SecretBytes(b"my-secret")),
+        (HttpUrl, "https://docs.pydantic.dev/", HttpUrl("https://docs.pydantic.dev/")),
+        (
+            HttpUrl,
+            "irc://docs.pydantic.dev/",
+            pytest.raises(BadParameter, match="URL scheme should be 'http' or 'https'"),
+        ),
+        (
+            PostgresDsn,
+            "postgres://user:pass@localhost:5432/foobar",
+            PostgresDsn("postgres://user:pass@localhost:5432/foobar"),
+        ),
+        (
+            PostgresDsn,
+            "redis://user:pass@localhost:5432/foobar",
+            pytest.raises(BadParameter, match="URL scheme should be 'postgres'"),
+        ),
+        (EmailStr, "hello@world.net", "hello@world.net"),
+        (EmailStr, "not-an-email", pytest.raises(BadParameter, match="not a valid email")),
+        (NameEmail, "Hello World <hello@world.net>", NameEmail("Hello World", "hello@world.net")),
+        (NameEmail, "not an email", pytest.raises(BadParameter, match="not a valid email")),
+        (IPv4Address, "127.0.0.1", IPv4Address("127.0.0.1")),
+        (IPv4Address, "::1", pytest.raises(BadParameter, match="not a valid IPv4 address")),
+        (IPv6Address, "::1", IPv6Address("::1")),
+        (IPv6Address, "127.0.0.1", pytest.raises(BadParameter, match="not a valid IPv6 address")),
+        (IPvAnyAddress, "127.0.0.1", IPv4Address("127.0.0.1")),
+        (IPvAnyAddress, "::1", IPv6Address("::1")),
+        (IPvAnyAddress, "not-an-ip", pytest.raises(BadParameter, match="not a valid IPv4 or IPv6 address")),
+        (IPv4Network, "127.0.0.0/8", IPv4Network("127.0.0.0/8")),
+        (IPv4Network, "::1/128", pytest.raises(BadParameter, match="not a valid IPv4 network")),
+        (IPv6Network, "::1", IPv6Network("::1/128")),
+        (IPv6Network, "127.0.0.0/8", pytest.raises(BadParameter, match="not a valid IPv6 network")),
+        (IPvAnyNetwork, "127.0.0.0/8", IPv4Network("127.0.0.0/8")),
+        (IPvAnyNetwork, "::1/128", IPv6Network("::1/128")),
+        (IPvAnyNetwork, "not-a-network", pytest.raises(BadParameter, match="not a valid IPv4 or IPv6 network")),
+        (IPv4Interface, "127.0.0.0/8", IPv4Interface("127.0.0.0/8")),
+        (IPv4Interface, "::1/128", pytest.raises(BadParameter, match="not a valid IPv4 interface")),
+        (IPv6Interface, "::1", IPv6Interface("::1/128")),
+        (IPv6Interface, "127.0.0.0/8", pytest.raises(BadParameter, match="not a valid IPv6 interface")),
+        (IPvAnyInterface, "127.0.0.0/8", IPv4Interface("127.0.0.0/8")),
+        (IPvAnyInterface, "::1/128", IPv6Interface("::1/128")),
+        (IPvAnyInterface, "not-an-interface", pytest.raises(BadParameter, match="not a valid IPv4 or IPv6 interface")),
     ],
 )
-def test_get_type_from_field(annotation, raw_value, expected_outcome):
+@pytest.mark.parametrize(
+    "optional",
+    [
+        pytest.param(True, id="optional"),
+        pytest.param(False, id="single-type"),
+    ],
+)
+def test_get_type_from_field(annotation, raw_value, expected_outcome, optional):
     class Foo(BaseModel):
-        bar: annotation
+        if optional:
+            bar: Optional[annotation] = None
+        else:
+            bar: annotation
 
     click_type = _get_type_from_field(Foo.model_fields["bar"])
     context, check_expected = error_or_value(expected_outcome)
