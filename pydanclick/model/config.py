@@ -2,6 +2,7 @@ from typing import Any, Dict, Literal, Optional, Sequence, Set, Type
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from pydanclick.model.annotations import ClickOptsSet
 from pydanclick.types import DottedFieldName, OptionName, _ParameterKwargs
 
 unset = object()
@@ -34,7 +35,7 @@ class PydanclickConfig(BaseModel):
         extra_options: provide extra options to specific fields
     """
 
-    exclude: Sequence[str] = ()
+    exclude: Optional[Sequence[str]] = ()
     rename: Optional[Dict[str, str]] = None
     shorten: Optional[Dict[str, str]] = None
     prefix: Optional[str] = None
@@ -70,9 +71,10 @@ def get_config(
 ) -> _Config:
     """Get conversion config for a given model.
 
-    Config parameters are read from three sources (by decreasing priority):
+    Config parameters are read from four sources (by decreasing priority):
 
     - non-default arguments provided to `get_config`
+    - `ClickOpts` field level annotation metadata
     - `__pydanclick__` attribute of `model`, if any
     - default values
 
@@ -86,6 +88,7 @@ def get_config(
     default_options = getattr(model, _PYDANCLICK_OPTION_ATTRIBUTE, {})
     if isinstance(default_options, PydanclickConfig):
         default_options = default_options.model_dump(exclude_unset=True)
+    field_options = ClickOptsSet.from_model(model).as_config_dict()
     overriding_options: Dict[str, Any] = {
         key: value
         for key, value in [
@@ -101,4 +104,4 @@ def get_config(
         overriding_options["exclude"] = exclude
     if "docstring_style" not in default_options:
         overriding_options["docstring_style"] = docstring_style
-    return _Config.model_validate({**default_options, **overriding_options})
+    return _Config.model_validate({**default_options, **field_options, **overriding_options})

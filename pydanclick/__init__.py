@@ -1,4 +1,4 @@
 from pydanclick.main import from_pydantic
-from pydanclick.model import PydanclickConfig
+from pydanclick.model import ClickOpts, PydanclickConfig
 
-__all__ = ("from_pydantic", "PydanclickConfig")
+__all__ = ("from_pydantic", "ClickOpts", "PydanclickConfig")
