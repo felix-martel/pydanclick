@@ -1,9 +1,8 @@
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Annotated, Literal, Optional
 
 import click
 from pydantic import BaseModel, Field
-from typing_extensions import Annotated
 
 from pydanclick import from_pydantic
 
