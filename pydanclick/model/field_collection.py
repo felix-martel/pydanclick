@@ -31,7 +31,7 @@ class _Field:
     field_info: FieldInfo
     documentation: Optional[str] = None
     parents: Tuple[FieldName, ...] = ()
-    unpacked_from: DottedFieldName | None = None
+    unpacked_from: Union[DottedFieldName, None] = None
 
     @property
     def is_boolean_flag(self) -> bool:
