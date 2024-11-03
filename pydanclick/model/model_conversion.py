@@ -26,6 +26,7 @@ def convert_to_click(
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
     extra_options: Optional[Dict[str, _ParameterKwargs]] = None,
     ignore_unsupported: Optional[bool] = False,
+    unpack_list: bool = False,
 ) -> Tuple[List[click.Option], Callable[..., M]]:
     """Extract Click options from a Pydantic model.
 
@@ -58,6 +59,8 @@ def convert_to_click(
         extra_options: extra options to pass to `click.Option` for specific fields, as a mapping from dotted field names
             to option dictionary
         ignore_unsupported: ignore unsupported model fields instead of raising
+        unpack_list: if True, a list of nested models (e.g. `list[Foo]`) will be yield one command-line option for each
+            field in the nested model. Each field can be specified multiple times. This API is experimental.
 
     Returns:
         a pair `(options, validate)` where `options` is the list of Click options extracted from the model, and
@@ -70,6 +73,7 @@ def convert_to_click(
         excluded_fields=cast(Set[DottedFieldName], set(exclude)),
         docstring_style=docstring_style,
         parse_docstring=parse_docstring,
+        unpack_list=unpack_list,
     )
     qualified_names, options = convert_fields_to_options(
         fields,
@@ -79,5 +83,8 @@ def convert_to_click(
         extra_options=cast(Dict[DottedFieldName, _ParameterKwargs], extra_options),
         ignore_unsupported=ignore_unsupported,
     )
-    validator = functools.partial(model_validate_kwargs, model=model, qualified_names=qualified_names)
+    unpacked_names = {field.unpacked_from for field in fields if field.unpacked_from is not None}
+    validator = functools.partial(
+        model_validate_kwargs, model=model, qualified_names=qualified_names, unpacked_names=unpacked_names
+    )
     return options, validator

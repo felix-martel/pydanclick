@@ -23,6 +23,7 @@ class _Field:
         field_info: Pydantic `FieldInfo` object representing the field
         documentation: help string for the field, if available
         parents: list of parent names for the field
+        unpacked_from: name of the parent of this field. Only set for fields that are nested inside a list
     """
 
     name: FieldName
@@ -30,11 +31,17 @@ class _Field:
     field_info: FieldInfo
     documentation: Optional[str] = None
     parents: Tuple[FieldName, ...] = ()
+    unpacked_from: Union[DottedFieldName, None] = None
 
     @property
     def is_boolean_flag(self) -> bool:
         """Return True if the field represents boolean values."""
         return self.field_info.annotation is bool
+
+    @property
+    def multiple(self) -> bool:
+        """Return True if the field accepts multiple values."""
+        return self.unpacked_from is not None
 
 
 def collect_fields(
@@ -42,6 +49,7 @@ def collect_fields(
     excluded_fields: Iterable[DottedFieldName] = frozenset(),
     parse_docstring: bool = True,
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
+    unpack_list: bool = False,
 ) -> List[_Field]:
     """Collect fields (including nested ones) from a Pydantic model.
 
@@ -51,6 +59,8 @@ def collect_fields(
             all its parent names, separated by dots
         parse_docstring: if True, parse the model docstring and extract document for each field
         docstring_style: docstring style of the model. Ignored if `parse_docstring=False`
+        unpack_list: if True, lists of submodel will yield the list of fields of said submodule (where each field can
+            be specified multiple times)
 
     Returns:
         a mapping from field dotted names to field objects. Each field object contains the Pydantic `FieldInfo`, as well
@@ -63,7 +73,9 @@ def collect_fields(
         excluded_pattern = None
     return [
         option
-        for option in _collect_fields(obj, docstring_style=docstring_style, parse_docstring=parse_docstring)
+        for option in _collect_fields(
+            obj, docstring_style=docstring_style, parse_docstring=parse_docstring, unpack_list=unpack_list
+        )
         if excluded_pattern is None or not re.search(excluded_pattern, option.dotted_name)
     ]
 
@@ -97,6 +109,7 @@ def _collect_fields(
     documentation: Optional[str] = None,
     parse_docstring: bool = True,
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
+    unpack_list: bool = False,
 ) -> Iterable[_Field]:
     """Recursively iterate over fields from a Pydantic model."""
     if _is_pydantic_model(obj) or _is_pydantic_model(getattr(obj, "annotation", None)):
@@ -112,10 +125,30 @@ def _collect_fields(
                 parents=(*parents, field_name),
                 documentation=documentation,
                 parse_docstring=parse_docstring,
+                unpack_list=unpack_list,
             )
     elif isinstance(obj, FieldInfo):
         if not name:
             raise ValueError(f"Can't automatically infer a name from a field: {obj}")
+        dotted_name = DottedFieldName(".".join(parents))
+        if (
+            unpack_list
+            and get_origin(obj.annotation) is list
+            and len(args := get_args(obj.annotation)) == 1
+            and _is_pydantic_model(args[0])
+        ):
+            for collected_field in _collect_fields(
+                args[0],
+                name=name,
+                parents=parents,
+                documentation=documentation,
+                parse_docstring=parse_docstring,
+                # Cannot have unpacked model inside another unpacked model (unspecified behavior)
+                unpack_list=False,
+            ):
+                collected_field.unpacked_from = dotted_name
+                yield collected_field
+            return
         for annotation in _iter_union(obj.annotation):
             if _is_pydantic_model(annotation):
                 yield from _collect_fields(
@@ -124,9 +157,9 @@ def _collect_fields(
                     parents=parents,
                     documentation=documentation,
                     parse_docstring=parse_docstring,
+                    unpack_list=unpack_list,
                 )
         # TODO: exclude base models from the union
-        dotted_name = DottedFieldName(".".join(parents))
         yield _Field(
             name=name,
             dotted_name=dotted_name,
