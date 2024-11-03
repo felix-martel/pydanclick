@@ -1,5 +1,6 @@
 import click
 import pytest
+from pydantic import PydanticUserError
 from pydantic.fields import FieldInfo
 
 from pydanclick.model.field_collection import _Field
@@ -59,6 +60,21 @@ def test_convert_fields_to_options():
 )
 def test_get_option_name(name, aliases, prefix, is_boolean, expected_result):
     assert get_option_name(name, aliases=aliases, prefix=prefix, is_boolean=is_boolean) == expected_result
+
+
+def test_unsupported_field():
+    class Unsupported:
+        pass
+
+    unsupported_field = FieldInfo(annotation=Unsupported)
+    fields = [
+        _Field(name="a", dotted_name="foo.a", field_info=unsupported_field, parents=("foo", "a")),
+    ]
+    with pytest.raises(PydanticUserError):
+        _, options = convert_fields_to_options(fields, ignore_unsupported=False)
+
+    _, options = convert_fields_to_options(fields, ignore_unsupported=True)
+    assert options == []
 
 
 # TODO: ensure prefix is correctly preprended to the argument name
