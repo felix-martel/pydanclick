@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import List, Literal, Union
 
 from pydantic import BaseModel, Field
 
@@ -29,6 +29,16 @@ class Foos(BaseModel):
 
 class OptionalFoos(BaseModel):
     foos: List[Foo] = Field(default_factory=list)
+
+
+class UnionFoos(BaseModel):
+    foobazs: List[Union[Foo, Baz]]
+    foos: List[Foo]
+
+
+class MultipleFoos(BaseModel):
+    foos: List[Foo]
+    bazs: List[Baz]
 
 
 class NestedFoos(BaseModel):
