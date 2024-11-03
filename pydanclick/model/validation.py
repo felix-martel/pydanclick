@@ -41,6 +41,8 @@ def model_validate_kwargs(
         kwargs: mapping from argument name to their values
         model: Pydantic model to instantiate
         qualified_names: a mapping from argument names to corresponding dotted field names
+        unpacked_names: list of (dotted) field names to unpack, i.e. that are represented as a dict of lists and should
+            be turned as a list of dicts
 
     Returns:
         an instance of `model` with the provided values
