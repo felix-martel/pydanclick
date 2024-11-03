@@ -35,6 +35,11 @@ mkdocs = "^1.4.2"
 mkdocs-material = "^9.2.7"
 mkdocstrings = {extras = ["python"], version = "^0.23.0"}
 
+
+[tool.poetry.group.griffe.dependencies]
+# Griffe >1.4.0 doesn't support Python 3.8
+griffe = ">=1.0,<=1.4.0"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
