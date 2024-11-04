@@ -3,7 +3,7 @@ Some custom [`click` parameter types][click.ParamType] for some known `Pydantic`
 """
 
 from ipaddress import IPv4Address, IPv4Interface, IPv4Network, IPv6Address, IPv6Interface, IPv6Network
-from typing import Annotated, Any, Optional, Type, Union
+from typing import Any, Dict, Optional, Type, Union
 
 from click import Context, Parameter, ParamType
 from click.types import StringParamType
@@ -11,9 +11,29 @@ from pydantic import NameEmail, SecretBytes, SecretStr, TypeAdapter, ValidationE
 from pydantic.fields import FieldInfo
 from pydantic.networks import EmailStr, IPvAnyAddress, IPvAnyInterface, IPvAnyNetwork
 from pydantic_core import MultiHostUrl, Url
-from typing_extensions import TypeAlias
+from typing_extensions import Annotated, TypeAlias
 
-Annotation: TypeAlias = Union[Annotated, Type[Any]]
+from pydanclick.utils import camel_case_to_snake_case
+
+Annotation: TypeAlias = Union[Annotated[Any, ...], Type[Any]]
+
+TYPES_NAMES: Dict[Annotation, str] = {
+    SecretStr: "secret",
+    SecretBytes: "secret",
+    Url: "url",
+    MultiHostUrl: "url",
+    EmailStr: "email",
+    NameEmail: "email",
+    IPvAnyAddress: "ip",
+    IPv4Address: "ip",
+    IPv6Address: "ip",
+    IPvAnyNetwork: "network",
+    IPv4Network: "network",
+    IPv6Network: "network",
+    IPvAnyInterface: "iface",
+    IPv4Interface: "iface",
+    IPv6Interface: "iface",
+}
 
 
 class PydanticStringParam(StringParamType):
@@ -45,18 +65,24 @@ def get_pydantic_paramtype(field_type: Optional[Type], field: FieldInfo) -> Opti
     """
     Get a customised ParamType for Pydantic known types
     """
-    if not field.annotation:
-        return
-    annotation = Annotated[field.annotation, *field.metadata] if field.metadata else field.annotation
-    if field_type in (SecretStr, SecretBytes):
-        return pydantic_string_param_type("secret", annotation)
-    elif field_type in (Url, MultiHostUrl):
-        return pydantic_string_param_type("url", annotation)
-    elif field_type in (EmailStr, NameEmail):
-        return pydantic_string_param_type("email", annotation)
-    elif field_type in (IPvAnyAddress, IPv4Address, IPv6Address):
-        return pydantic_string_param_type("ip", annotation)
-    elif field_type in (IPvAnyNetwork, IPv4Network, IPv6Network):
-        return pydantic_string_param_type("network", annotation)
-    elif field_type in (IPvAnyInterface, IPv4Interface, IPv6Interface):
-        return pydantic_string_param_type("iface", annotation)
+    if not (field_type and field.annotation):
+        return None
+    annotation: Annotation = field.annotation
+    for metadata in field.metadata:
+        annotation = Annotated[annotation, metadata]
+    if name := TYPES_NAMES.get(field_type):
+        return pydantic_string_param_type(name, annotation)
+    return None
+
+
+def register_pydanclick_string_type(new_type: Type, name: Optional[str] = None) -> None:
+    """
+    Register a custom Pydantic type known to be parseable as a string.
+
+    Args:
+        new_type: The type to register.
+        name: an optional that will serve as default metavar.
+    """
+    if not name:
+        name = camel_case_to_snake_case(new_type.__name__)
+    TYPES_NAMES[new_type] = name

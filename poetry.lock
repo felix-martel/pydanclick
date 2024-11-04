@@ -1166,6 +1166,29 @@ files = [
 typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
+name = "pydantic-extra-types"
+version = "2.10.0"
+description = "Extra Pydantic types."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pydantic_extra_types-2.10.0-py3-none-any.whl", hash = "sha256:b19943914e6286548254f5079d1da094e9c0583ee91a8e611e9df24bfd07dbcd"},
+    {file = "pydantic_extra_types-2.10.0.tar.gz", hash = "sha256:552c47dd18fe1d00cfed75d9981162a2f3203cf7e77e55a3d3e70936f59587b9"},
+]
+
+[package.dependencies]
+pydantic = ">=2.5.2"
+typing-extensions = "*"
+
+[package.extras]
+all = ["pendulum (>=3.0.0,<4.0.0)", "phonenumbers (>=8,<9)", "pycountry (>=23)", "python-ulid (>=1,<2)", "python-ulid (>=1,<4)", "pytz (>=2024.1)", "semver (>=3.0.2)", "semver (>=3.0.2,<3.1.0)", "tzdata (>=2024.1)"]
+pendulum = ["pendulum (>=3.0.0,<4.0.0)"]
+phonenumbers = ["phonenumbers (>=8,<9)"]
+pycountry = ["pycountry (>=23)"]
+python-ulid = ["python-ulid (>=1,<2)", "python-ulid (>=1,<3)"]
+semver = ["semver (>=3.0.2)"]
+
+[[package]]
 name = "pydantic-settings"
 version = "2.6.1"
 description = "Settings management using Pydantic"
@@ -1695,4 +1718,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0"
-content-hash = "7ba5638fb1b90190e2a07f9a4ad02e419a94ebfbae97c299546bf25c69c58ad2"
+content-hash = "6d172e36bc086512806f6de9d3930d3652dacad65f912e6b6b3f6046551332ab"

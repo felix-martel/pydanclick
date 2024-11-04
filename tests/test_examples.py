@@ -106,6 +106,8 @@ def test_complex_types_example_help():
         (["--url", "https://docs.pydantic.dev"], {"url": "https://docs.pydantic.dev/"}),
         (["--name-email", "john.doe@acme.net"], {"name_email": "john.doe <john.doe@acme.net>"}),
         (["--ip", "::1", "--net", "127.0.0.0/8"], {"ip": "::1", "net": "127.0.0.0/8"}),
+        (["--color", "blue"], {"color": "blue"}),
+        (["--mac", "00:11:22:33:44:55"], {"mac": "00:11:22:33:44:55"}),
     ],
 )
 def test_known_types_example(args, expected):
@@ -124,3 +126,5 @@ def test_known_types_example_help():
     assert "--secret SECRET" in result.output
     assert "--url URL" in result.output
     assert "--ip IP" in result.output
+    assert "--color COLOR" in result.output
+    assert "--mac MAC" in result.output

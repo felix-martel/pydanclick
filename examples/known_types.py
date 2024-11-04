@@ -3,8 +3,13 @@ from typing import Optional
 import click
 from pydantic import BaseModel, EmailStr, HttpUrl, NameEmail, PostgresDsn, SecretStr
 from pydantic.networks import IPvAnyAddress, IPvAnyInterface, IPvAnyNetwork
+from pydantic_extra_types.color import Color
+from pydantic_extra_types.mac_address import MacAddress
 
-from pydanclick import from_pydantic
+from pydanclick import from_pydantic, register_pydanclick_string_type
+
+register_pydanclick_string_type(Color)
+register_pydanclick_string_type(MacAddress, "mac")
 
 
 class KnownTypes(BaseModel):
@@ -16,6 +21,8 @@ class KnownTypes(BaseModel):
     ip: Optional[IPvAnyAddress] = None
     net: Optional[IPvAnyNetwork] = None
     iface: Optional[IPvAnyInterface] = None
+    color: Optional[Color] = None
+    mac: Optional[MacAddress] = None
 
 
 @click.command()

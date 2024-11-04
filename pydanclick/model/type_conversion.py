@@ -3,13 +3,14 @@
 import datetime
 import re
 from pathlib import Path
-from typing import Annotated, Any, List, Literal, Optional, Tuple, Type, TypedDict, Union, cast, get_args, get_origin
+from typing import Any, List, Literal, Optional, Tuple, Type, TypedDict, Union, cast, get_args, get_origin
 from uuid import UUID
 
 import click
 from annotated_types import Ge, Gt, Le, Lt, SupportsGe, SupportsGt, SupportsLe, SupportsLt
 from pydantic import TypeAdapter, ValidationError
 from pydantic.fields import FieldInfo
+from typing_extensions import Annotated
 
 from pydanclick.model.known_types import get_pydantic_paramtype
 
@@ -186,7 +187,7 @@ def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
         return get_pydantic_paramtype(field_type, field) or _create_custom_type(field)
 
 
-def _resolve_type(field: FieldInfo) -> Tuple[Type, Tuple, Type, List]:
+def _resolve_type(field: FieldInfo) -> Tuple[Optional[Type], Tuple, Optional[Type], List]:
     """Resolve significative type annotations for a given FieldInfo.
 
     It handle single types, optional types defaulting to `None` as well as AnnotatedTypes.

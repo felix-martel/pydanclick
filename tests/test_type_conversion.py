@@ -6,8 +6,11 @@ import pytest
 from click import BadParameter
 from pydantic import BaseModel, Field, SecretBytes, SecretStr
 from pydantic.networks import EmailStr, HttpUrl, IPvAnyAddress, IPvAnyInterface, IPvAnyNetwork, NameEmail, PostgresDsn
+from pydantic_extra_types.color import Color
+from pydantic_extra_types.mac_address import MacAddress
 from typing_extensions import Annotated
 
+from pydanclick.model.known_types import register_pydanclick_string_type
 from pydanclick.model.type_conversion import _get_type_from_field
 from tests.conftest import error_or_value
 
@@ -135,3 +138,30 @@ def test_get_type_from_field(annotation, raw_value, expected_outcome, optional):
     with context:
         converted_value = click_type.convert(raw_value, None, None)
         check_expected(converted_value)
+
+
+@pytest.mark.parametrize(
+    "new_type,name",
+    [
+        (Color, "color"),
+        (MacAddress, "mac_address"),
+    ],
+)
+def test_register_type(new_type, name):
+    register_pydanclick_string_type(new_type)
+
+    class Foo(BaseModel):
+        bar: new_type
+
+    click_type = _get_type_from_field(Foo.model_fields["bar"])
+    assert click_type.name == name
+
+
+def test_register_type_with_name():
+    register_pydanclick_string_type(MacAddress, "mac")
+
+    class Foo(BaseModel):
+        mac: MacAddress
+
+    click_type = _get_type_from_field(Foo.model_fields["mac"])
+    assert click_type.name == "mac"
