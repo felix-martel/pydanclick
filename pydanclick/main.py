@@ -19,7 +19,7 @@ def from_pydantic(
     rename: Optional[Dict[str, str]] = None,
     shorten: Optional[Dict[str, str]] = None,
     prefix: Optional[str] = None,
-    parse_docstring: bool = True,
+    parse_docstring: Optional[bool] = None,
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
     extra_options: Optional[Dict[str, _ParameterKwargs]] = None,
     ignore_unsupported: Optional[bool] = False,

@@ -163,6 +163,7 @@ def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
     Returns:
         a Click type
     """
+    # print(f"{field.annotation=} {field.metadata=}")
     field_type = field.annotation
     field_args = get_args(field_type)
     field_origin = get_origin(field_type)
