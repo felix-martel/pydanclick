@@ -3,6 +3,7 @@
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union
 
 import click
+from pydantic import PydanticUserError
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
@@ -20,6 +21,7 @@ def convert_fields_to_options(
     aliases: Optional[Dict[DottedFieldName, OptionName]] = None,
     shorten: Optional[Dict[DottedFieldName, OptionName]] = None,
     extra_options: Optional[Dict[DottedFieldName, _ParameterKwargs]] = None,
+    ignore_unsupported: Optional[bool] = False,
 ) -> Tuple[Dict[ArgumentName, DottedFieldName], List[click.Option]]:
     """Convert Pydantic fields to Click options.
 
@@ -30,6 +32,7 @@ def convert_fields_to_options(
         shorten: short option names for specific fields, as a mapping from dotted field names to 1-letter option names
         extra_options: extra options to pass to `click.Option` for specific fields, as a mapping from dotted field names
             to option dictionary
+        ignore_unsupported: ignore unsupported model fields instead of raising
 
     Returns:
         a pair `(qualified_names, options)` where `qualified_names` is a mapping from argument names to dotted field
@@ -46,18 +49,24 @@ def convert_fields_to_options(
     qualified_names = {}
     for field in fields:
         argument_name = ArgumentName(argument_prefix + "_".join(field.parents))
-        option = _get_option_from_field(
-            argument_name=argument_name,
-            option_name=get_option_name(
-                field.dotted_name, aliases=aliases, is_boolean=field.is_boolean_flag, prefix=option_prefix
-            ),
-            field_info=field.field_info,
-            documentation=field.field_info.description or field.documentation,
-            short_name=shorten.get(field.dotted_name, None),
-            option_kwargs=extra_options.get(field.dotted_name, {}),
-        )
-        options.append(option)
-        qualified_names[argument_name] = field.dotted_name
+        try:
+            option = _get_option_from_field(
+                argument_name=argument_name,
+                option_name=get_option_name(
+                    field.dotted_name, aliases=aliases, is_boolean=field.is_boolean_flag, prefix=option_prefix
+                ),
+                field_info=field.field_info,
+                documentation=field.field_info.description or field.documentation,
+                short_name=shorten.get(field.dotted_name, None),
+                option_kwargs=extra_options.get(field.dotted_name, {}),
+                multiple=field.multiple,
+            )
+            options.append(option)
+            qualified_names[argument_name] = field.dotted_name
+        except PydanticUserError as e:
+            if ignore_unsupported and e.code == "schema-for-unknown-type":
+                continue
+            raise
     return qualified_names, options
 
 
@@ -139,6 +148,7 @@ def _get_option_from_field(
     documentation: Optional[str] = None,
     short_name: Optional[str] = None,
     option_kwargs: Optional[_ParameterKwargs] = None,
+    multiple: bool = False,
 ) -> click.Option:
     """Convert a Pydantic field to a Click option.
 
@@ -150,6 +160,7 @@ def _get_option_from_field(
         documentation: help string for the option
         short_name: short name of the option (one dash and one letter)
         option_kwargs: extra options to pass to `click.option`
+        multiple: if field can be specified multiple times
 
     Returns:
         `click.Option` object
@@ -159,9 +170,10 @@ def _get_option_from_field(
         param_decls.append(short_name)
     kwargs: _ParameterKwargs = {
         "type": _get_type_from_field(field_info),
-        "default": _get_default_value_from_field(field_info),
+        "default": _get_default_value_from_field(field_info) if not multiple else [],
         "required": field_info.is_required(),
         "help": documentation,
+        "multiple": multiple,
     }
     if option_kwargs is not None:
         kwargs.update(option_kwargs)

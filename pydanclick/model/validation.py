@@ -8,7 +8,8 @@ Validation involves the following steps:
 - pass the nested representation to the `model_validate` method of the Pydantic model
 """
 
-from typing import Any, Dict, Type
+from itertools import zip_longest
+from typing import Any, Dict, Iterable, List, Set, Type
 
 from pydantic import BaseModel
 from typing_extensions import TypeVar
@@ -21,7 +22,10 @@ K = TypeVar("K", bound=str)
 
 
 def model_validate_kwargs(
-    kwargs: Dict[ArgumentName, Any], model: Type[M], qualified_names: Dict[ArgumentName, DottedFieldName]
+    kwargs: Dict[ArgumentName, Any],
+    model: Type[M],
+    qualified_names: Dict[ArgumentName, DottedFieldName],
+    unpacked_names: Set[DottedFieldName],
 ) -> M:
     """Instantiate `model` for keyword arguments.
 
@@ -37,13 +41,30 @@ def model_validate_kwargs(
         kwargs: mapping from argument name to their values
         model: Pydantic model to instantiate
         qualified_names: a mapping from argument names to corresponding dotted field names
+        unpacked_names: list of (dotted) field names to unpack, i.e. that are represented as a dict of lists and should
+            be turned as a list of dicts
 
     Returns:
         an instance of `model` with the provided values
     """
     flat_model = _parse_options(qualified_names, kwargs)
     raw_model = _unflatten_dict(flat_model)
+    for name in unpacked_names & raw_model.keys():
+        raw_model[name] = _pack_dict(raw_model[name])
+        # There is no way to distinguish between passing an empty list and not passing anything: here, we assume empty
+        # means nothing was passed, and we rely on Pydantic validation to either fail (if argument is mandatory) or
+        # provide a default value (if there is one). To pass an empty list explicitly, turn off unpacking and pass '[]'
+        if not raw_model[name]:
+            del raw_model[name]
     return model.model_validate(raw_model)
+
+
+def _pack_dict(d: Dict[K, Iterable[V]]) -> List[Dict[K, Any]]:
+    unset = object()
+    packed_dict = []
+    for values in zip_longest(*d.values(), fillvalue=unset):
+        packed_dict.append({key: value for key, value in zip(d, values) if value is not unset})
+    return packed_dict
 
 
 def _unflatten_dict(d: Dict[K, V], sep: str = ".") -> Dict[str, Any]:

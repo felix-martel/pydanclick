@@ -319,6 +319,57 @@ class MyModel(BaseModel):
 
 See the _Reuse models_ example for a full example.
 
+### Unpacking (experimental)
+
+_Unpacking_ provides a simpler API when working with list of submodels.
+
+Consider the following example:
+
+```python
+class Author:
+    name: str
+    primary: bool = False
+
+
+class Book:
+    title: str
+    authors: list[Author]
+
+@click.command()
+@from_pydantic(Book, unpack_list=True)
+def cli(book: Book):
+    pass
+```
+
+By default, this would create two command-line arguments `--title` and `--authors`. Since `authors` has a complex type, it should be passed as a JSON string (e.g. `--authors '[{"authors": {"name": "Alice", "primary": true}, {"name": "Bob"}]'). Using `unpacked_list`will instead "unpack" the nested field`name`into the main namespace: this new argument is called`--authors-name` and can be specified multiple time, for example:
+
+```shell
+python cli.py --authors-name Alice --authors-primary --authors-name Bob
+```
+
+would create:
+
+```python
+Book(authors=[Author(name="Alice", primary=True), Author(name="Bob")])
+```
+
+Note that you must always specify objects with optional arguments _before_ objects without them. For example, the following command would make `Bob` the primary author, not `Alice`:
+
+```shell
+python cli.py --authors-name Bob --authors-name Alice --authors-primary
+```
+
+_(Why? Because under the hood, arguments are collected per field `{"name": [Bob, Alice], "primary": [True]}`, and relative placement between fields cannot be accessed.)_
+
+When in doubt, you can simply specify all arguments:
+
+```shell
+python cli.py --authors-name Bob --no-authors-primary --authors-name Alice --authors-primary
+```
+
+This API is experimental and will not work in complex cases (deeply nested lists, lists of union, and much more).
+See issue [#20](https://github.com/felix-martel/pydanclick/issues/20) for context and details.
+
 <!-- --8<-- [end:features] -->
 
 ## API Reference
