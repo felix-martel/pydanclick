@@ -70,7 +70,7 @@ class PydanclickDefault:
         return bool(self._default)
 
     def __repr__(self) -> Any:
-        return self._default.__repr__()
+        return repr(self._default)
 
 
 class PydanclickDefaultCallable(PydanclickDefault):
