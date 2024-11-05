@@ -15,12 +15,17 @@ nav:
       - Multiple Models: examples/complex.md
       - Nested Models: examples/nested.md
       - Complex Types: examples/complex_types.md
+      - Known Types: examples/known_types.md
   - Contributing: contributing.md
 plugins:
   - search
   - mkdocstrings:
       handlers:
         python:
+          import:
+            - https://docs.python.org/objects.inv
+            - https://click.palletsprojects.com/en/stable/objects.inv
+            - https://docs.pydantic.dev/latest/objects.inv
           setup_commands:
             - import sys
             - sys.path.append('../')
