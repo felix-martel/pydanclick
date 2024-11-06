@@ -3,13 +3,16 @@
 import datetime
 import re
 from pathlib import Path
-from typing import Any, List, Literal, Optional, Type, TypedDict, Union, cast, get_args, get_origin
+from typing import Any, List, Literal, Optional, Tuple, Type, TypedDict, Union, cast, get_args, get_origin
 from uuid import UUID
 
 import click
 from annotated_types import Ge, Gt, Le, Lt, SupportsGe, SupportsGt, SupportsLe, SupportsLt
 from pydantic import TypeAdapter, ValidationError
 from pydantic.fields import FieldInfo
+from typing_extensions import Annotated
+
+from pydanclick.model.known_types import get_pydantic_paramtype
 
 NoneType = type(None)
 
@@ -106,7 +109,7 @@ def _get_range_from_metadata(metadata: List[Any]) -> _RangeDict:
     return range_args
 
 
-def _get_numerical_type(field: FieldInfo) -> click.ParamType:
+def _get_numerical_type(field_type: Union[Type[int], Type[float]], metadata: List[Any]) -> click.ParamType:
     """Convert a numerical field to a Click parameter type.
 
     Converts Pydantic numerical constraints (e.g. `Field(gt=0)` or `Field(le=10)`) into a Click range type such as
@@ -119,8 +122,8 @@ def _get_numerical_type(field: FieldInfo) -> click.ParamType:
     Returns:
         either `click.INT`, `click.FLOAT` or an instance of `click.IntRange` or `click.FloatRange`
     """
-    range_args = _get_range_from_metadata(field.metadata)
-    if field.annotation is int:
+    range_args = _get_range_from_metadata(metadata)
+    if field_type is int:
         if range_args:
             return click.IntRange(**range_args)  # type: ignore[arg-type]
         return click.INT
@@ -163,22 +166,12 @@ def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
     Returns:
         a Click type
     """
-    field_type = field.annotation
-    field_args = get_args(field_type)
-    field_origin = get_origin(field_type)
-    # TODO: handle annotated
-    # TODO: handle subclasses
-    if field_origin is Union and len(field_args) == 2 and NoneType in field_args and field.default is None:
-        # Optional types where None is only used as a default value can be safely treated as a
-        # non-optional type, since Click doesn't really distinguish between a strign with default value None from
-        # an actual str
-        field_type = next(field_arg for field_arg in field_args if field_arg is not None)
+    field_type, field_args, field_origin, metadata = _resolve_type(field)
+
     if field_type is str:
         return click.STRING
     elif field_type in (int, float):
-        return _get_numerical_type(field)
-    elif field_type is float:
-        return click.FLOAT
+        return _get_numerical_type(field_type, metadata)
     elif field_type is bool:
         return click.BOOL
     elif field_type is UUID:
@@ -191,7 +184,37 @@ def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
         # TODO: allow converting literal to feature switches
         return click.Choice(field_args)
     else:
-        return _create_custom_type(field)
+        return get_pydantic_paramtype(field_type, field) or _create_custom_type(field)
+
+
+def _resolve_type(field: FieldInfo) -> Tuple[Optional[Type], Tuple, Optional[Type], List]:
+    """Resolve significative type annotations for a given FieldInfo.
+
+    It handle single types, optional types defaulting to `None` as well as AnnotatedTypes.
+
+    Args:
+        field: field to convert
+
+    Returns:
+        A tuple (type, args, origin, metadata)
+    """
+    field_type = field.annotation
+    field_args = get_args(field_type)
+    field_origin = get_origin(field_type)
+    metadata = field.metadata
+    # TODO: handle subclasses
+    if field_origin is Union and len(field_args) == 2 and NoneType in field_args and field.default is None:
+        # Optional types where None is only used as a default value can be safely treated as a
+        # non-optional type, since Click doesn't really distinguish between a strign with default value None from
+        # an actual str
+        field_type = next(field_arg for field_arg in field_args if field_arg is not None)
+        field_args = get_args(field_type)
+        field_origin = get_origin(field_type)
+    if field_origin is Annotated:
+        field_type = field_args[0]
+        if isinstance(field_args[1], FieldInfo):
+            metadata = field_args[1].metadata
+    return field_type, field_args, field_origin, metadata
 
 
 def _create_custom_type(field: FieldInfo) -> click.ParamType:
