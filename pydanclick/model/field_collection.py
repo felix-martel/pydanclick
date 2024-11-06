@@ -2,7 +2,8 @@
 
 import dataclasses
 import re
-from typing import Any, Iterable, List, Literal, Optional, Tuple, Type, Union, get_args, get_origin
+from collections.abc import Iterable
+from typing import Any, Literal, Optional, Union, get_args, get_origin
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
@@ -30,7 +31,7 @@ class _Field:
     dotted_name: DottedFieldName
     field_info: FieldInfo
     documentation: Optional[str] = None
-    parents: Tuple[FieldName, ...] = ()
+    parents: tuple[FieldName, ...] = ()
     unpacked_from: Union[DottedFieldName, None] = None
 
     @property
@@ -45,12 +46,12 @@ class _Field:
 
 
 def collect_fields(
-    obj: Type[BaseModel],
+    obj: type[BaseModel],
     excluded_fields: Iterable[DottedFieldName] = frozenset(),
     parse_docstring: bool = True,
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
     unpack_list: bool = False,
-) -> List[_Field]:
+) -> list[_Field]:
     """Collect fields (including nested ones) from a Pydantic model.
 
     Args:
@@ -80,7 +81,7 @@ def collect_fields(
     ]
 
 
-def _iter_union(field_type: Any) -> List[Type[Any]]:
+def _iter_union(field_type: Any) -> list[type[Any]]:
     """Iterate over the types of a union.
 
     Args:
@@ -94,7 +95,7 @@ def _iter_union(field_type: Any) -> List[Type[Any]]:
     return []
 
 
-def _is_pydantic_model(model: Any) -> TypeGuard[Type[BaseModel]]:
+def _is_pydantic_model(model: Any) -> TypeGuard[type[BaseModel]]:
     """Return True if `model` is a Pydantic `BaseModel` class."""
     try:
         return issubclass(model, BaseModel)
@@ -103,9 +104,9 @@ def _is_pydantic_model(model: Any) -> TypeGuard[Type[BaseModel]]:
 
 
 def _collect_fields(
-    obj: Union[Type[BaseModel], FieldInfo],
+    obj: Union[type[BaseModel], FieldInfo],
     name: FieldName = "",  # type: ignore[assignment]
-    parents: Tuple[FieldName, ...] = (),
+    parents: tuple[FieldName, ...] = (),
     documentation: Optional[str] = None,
     parse_docstring: bool = True,
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
@@ -113,7 +114,7 @@ def _collect_fields(
 ) -> Iterable[_Field]:
     """Recursively iterate over fields from a Pydantic model."""
     if _is_pydantic_model(obj) or _is_pydantic_model(getattr(obj, "annotation", None)):
-        model: Type[BaseModel]
+        model: type[BaseModel]
         model = obj if _is_pydantic_model(obj) else obj.annotation  # type: ignore[assignment, union-attr]
         docstrings = parse_attribute_documentation(model, docstring_style=docstring_style) if parse_docstring else {}
         for field_name, field in model.model_fields.items():

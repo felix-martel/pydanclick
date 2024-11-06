@@ -1,5 +1,6 @@
 import functools
-from typing import Any, Callable, Dict, Literal, Optional, Sequence, Type, TypeVar, Union
+from collections.abc import Sequence
+from typing import Any, Callable, Literal, Optional, TypeVar, Union
 
 from pydantic import BaseModel
 
@@ -12,16 +13,16 @@ T = TypeVar("T")
 
 
 def from_pydantic(
-    __var_or_model: Union[str, Type[BaseModel]],
-    model: Optional[Type[BaseModel]] = None,
+    __var_or_model: Union[str, type[BaseModel]],
+    model: Optional[type[BaseModel]] = None,
     *,
     exclude: Sequence[str] = (),
-    rename: Optional[Dict[str, str]] = None,
-    shorten: Optional[Dict[str, str]] = None,
+    rename: Optional[dict[str, str]] = None,
+    shorten: Optional[dict[str, str]] = None,
     prefix: Optional[str] = None,
     parse_docstring: bool = True,
     docstring_style: Literal["google", "numpy", "sphinx"] = "google",
-    extra_options: Optional[Dict[str, _ParameterKwargs]] = None,
+    extra_options: Optional[dict[str, _ParameterKwargs]] = None,
     ignore_unsupported: Optional[bool] = False,
     unpack_list: bool = False,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:

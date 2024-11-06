@@ -1,6 +1,6 @@
 """Convert Pydantic fields to Click options."""
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Callable, Optional, TypeVar, Union
 
 import click
 from pydantic import PydanticUserError
@@ -16,13 +16,13 @@ T = TypeVar("T")
 
 
 def convert_fields_to_options(
-    fields: List[_Field],
+    fields: list[_Field],
     prefix: Optional[str] = None,
-    aliases: Optional[Dict[DottedFieldName, OptionName]] = None,
-    shorten: Optional[Dict[DottedFieldName, OptionName]] = None,
-    extra_options: Optional[Dict[DottedFieldName, _ParameterKwargs]] = None,
+    aliases: Optional[dict[DottedFieldName, OptionName]] = None,
+    shorten: Optional[dict[DottedFieldName, OptionName]] = None,
+    extra_options: Optional[dict[DottedFieldName, _ParameterKwargs]] = None,
     ignore_unsupported: Optional[bool] = False,
-) -> Tuple[Dict[ArgumentName, DottedFieldName], List[click.Option]]:
+) -> tuple[dict[ArgumentName, DottedFieldName], list[click.Option]]:
     """Convert Pydantic fields to Click options.
 
     Args:
@@ -71,7 +71,7 @@ def convert_fields_to_options(
 
 
 def _get_base_option_name(
-    dotted_name: DottedFieldName, aliases: Dict[DottedFieldName, OptionName], prefix: str = ""
+    dotted_name: DottedFieldName, aliases: dict[DottedFieldName, OptionName], prefix: str = ""
 ) -> str:
     parents = dotted_name.split(".")
     for i in range(len(parents) + 1, 0, -1):
@@ -103,7 +103,7 @@ def _convert_to_valid_prefix(name: str) -> str:
 def get_option_name(
     dotted_name: DottedFieldName,
     *,
-    aliases: Dict[DottedFieldName, OptionName],
+    aliases: dict[DottedFieldName, OptionName],
     is_boolean: bool = False,
     prefix: str = "",
 ) -> OptionName:

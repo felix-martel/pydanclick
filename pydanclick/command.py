@@ -1,6 +1,6 @@
 """Utilities to work with Click commands and options."""
 
-from typing import Any, Callable, List, Optional, TypeVar, Union
+from typing import Any, Callable, Optional, TypeVar, Union
 
 import click
 
@@ -8,7 +8,7 @@ T = TypeVar("T")
 
 
 def add_options(
-    __f_or_opts: Union[Callable[..., Any], List[click.Option]], options: Optional[List[click.Option]] = None
+    __f_or_opts: Union[Callable[..., Any], list[click.Option]], options: Optional[list[click.Option]] = None
 ) -> Callable[..., Any]:
     """Add options to a Click command.
 
@@ -46,7 +46,7 @@ def add_options(
     return wrapper
 
 
-def _add_options(f: Callable[..., Any], options: List[click.Option]) -> Callable[..., Any]:
+def _add_options(f: Callable[..., Any], options: list[click.Option]) -> Callable[..., Any]:
     """Add Click options to a callable or command.
 
     This is basically a copy of what the `@click.option()` decorator does (i.e. if `f` isn't a `click.Command`, add its
