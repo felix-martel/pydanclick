@@ -27,8 +27,7 @@ def parse_attribute_documentation(
     try:
         import logging
 
-        from griffe.dataclasses import Docstring
-        from griffe.docstrings.dataclasses import DocstringAttribute, DocstringSectionAttributes
+        from griffe import Docstring, DocstringAttribute, DocstringSectionAttributes
 
         logging.getLogger(f"griffe.docstrings.{docstring_style}").disabled = True
         logging.getLogger("griffe.agents.nodes").disabled = True

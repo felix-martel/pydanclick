@@ -33,7 +33,12 @@ pydantic-settings = "^2.4.0"
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"
 mkdocs-material = "^9.2.7"
-mkdocstrings = {extras = ["python"], version = "^0.23.0"}
+mkdocstrings = "^0.26"
+mkdocstrings-python = ">=1.10.8"
+
+[tool.poetry.group.griffe.dependencies]
+# Griffe >1.4.0 doesn't support Python 3.8
+griffe = ">=1.0,<=1.4.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -113,3 +118,4 @@ source = ["pydanclick"]
 
 [tool.deptry.per_rule_ignores]
 DEP003 = ["griffe"]
+DEP004 = ["griffe"]
