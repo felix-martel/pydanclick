@@ -118,3 +118,4 @@ source = ["pydanclick"]
 
 [tool.deptry.per_rule_ignores]
 DEP003 = ["griffe"]
+DEP004 = ["griffe"]
