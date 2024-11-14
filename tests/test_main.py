@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 import click
 import pytest
 from click.testing import CliRunner
@@ -41,8 +39,8 @@ def test_nested():
 
 def test_list_field():
     class Foo(BaseModel):
-        a: List[int]
-        b: Dict[str, int]
+        a: list[int]
+        b: dict[str, int]
 
     @click.command()
     @from_pydantic("foo", Foo)

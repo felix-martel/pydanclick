@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from contextlib import nullcontext as does_not_raise
-from typing import Iterable
 
 import click
 from _pytest.python_api import RaisesContext
