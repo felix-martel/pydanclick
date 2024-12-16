@@ -1,10 +1,9 @@
-from typing import List, Literal, Union
+from typing import Annotated, Literal, Union
 
 import click
 import pytest
 from click import BadParameter
 from pydantic import BaseModel, Field
-from typing_extensions import Annotated
 
 from pydanclick.model.type_conversion import _get_type_from_field
 from tests.conftest import error_or_value
@@ -66,8 +65,8 @@ def test_get_type_from_field_with_constrained_int():
         (bool, "123", pytest.raises(BadParameter)),
         (Annotated[bool, "foo_bar"], "yes", True),
         (Union[float, str], "3.14", 3.14),
-        (List[str], "[]", []),
-        (List[str], """["1", "2", "3", "4"]""", ["1", "2", "3", "4"]),
+        (list[str], "[]", []),
+        (list[str], """["1", "2", "3", "4"]""", ["1", "2", "3", "4"]),
     ],
 )
 def test_get_type_from_field(annotation, raw_value, expected_outcome):

@@ -8,8 +8,9 @@ Validation involves the following steps:
 - pass the nested representation to the `model_validate` method of the Pydantic model
 """
 
+from collections.abc import Iterable
 from itertools import zip_longest
-from typing import Any, Dict, Iterable, List, Set, Type
+from typing import Any
 
 from pydantic import BaseModel
 from typing_extensions import TypeVar
@@ -22,10 +23,10 @@ K = TypeVar("K", bound=str)
 
 
 def model_validate_kwargs(
-    kwargs: Dict[ArgumentName, Any],
-    model: Type[M],
-    qualified_names: Dict[ArgumentName, DottedFieldName],
-    unpacked_names: Set[DottedFieldName],
+    kwargs: dict[ArgumentName, Any],
+    model: type[M],
+    qualified_names: dict[ArgumentName, DottedFieldName],
+    unpacked_names: set[DottedFieldName],
 ) -> M:
     """Instantiate `model` for keyword arguments.
 
@@ -59,7 +60,7 @@ def model_validate_kwargs(
     return model.model_validate(raw_model)
 
 
-def _pack_dict(d: Dict[K, Iterable[V]]) -> List[Dict[K, Any]]:
+def _pack_dict(d: dict[K, Iterable[V]]) -> list[dict[K, Any]]:
     unset = object()
     packed_dict = []
     for values in zip_longest(*d.values(), fillvalue=unset):
@@ -67,7 +68,7 @@ def _pack_dict(d: Dict[K, Iterable[V]]) -> List[Dict[K, Any]]:
     return packed_dict
 
 
-def _unflatten_dict(d: Dict[K, V], sep: str = ".") -> Dict[str, Any]:
+def _unflatten_dict(d: dict[K, V], sep: str = ".") -> dict[str, Any]:
     """Create a nested dictionary from a flat dictionary.
 
     >>> _unflatten_dict({"a.b.c": "abc", "a.b.d": "def", "a.e": "ghi", "f": 1})
@@ -77,7 +78,7 @@ def _unflatten_dict(d: Dict[K, V], sep: str = ".") -> Dict[str, Any]:
         d: flat mapping with strings as keys
         sep: separator used to separate different levels of nesting in a key
     """
-    nested: Dict[str, Any] = {}
+    nested: dict[str, Any] = {}
     for k, v in d.items():
         if not k:
             raise ValueError("Empty keys are not supported")
@@ -90,8 +91,8 @@ def _unflatten_dict(d: Dict[K, V], sep: str = ".") -> Dict[str, Any]:
 
 
 def _parse_options(
-    aliases: Dict[ArgumentName, DottedFieldName], kwargs: Dict[ArgumentName, V]
-) -> Dict[DottedFieldName, V]:
+    aliases: dict[ArgumentName, DottedFieldName], kwargs: dict[ArgumentName, V]
+) -> dict[DottedFieldName, V]:
     """Extract keys and values from `kwargs`.
 
     Args:
