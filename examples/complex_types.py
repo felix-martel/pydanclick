@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Literal, Tuple
+from typing import Literal
 
 import click
 from pydantic import BaseModel, Field
@@ -17,8 +17,8 @@ class RunConfig(BaseModel):
     """
 
     image: str
-    mounts: List[Tuple[Literal["bind", "volume", "tmpfs"], Path, Path]] = Field(default_factory=list)
-    ports: Dict[int, int] = Field(default_factory=dict)
+    mounts: list[tuple[Literal["bind", "volume", "tmpfs"], Path, Path]] = Field(default_factory=list)
+    ports: dict[int, int] = Field(default_factory=dict)
 
 
 @click.command()

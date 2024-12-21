@@ -86,3 +86,13 @@ def test_complex_types_example(args, expected_results):
     result = runner.invoke(complex_types.cli, ["--image", "foo", *args])
     assert result.exit_code == 0
     assert json.loads(result.output) == {"image": "foo", "mounts": [], "ports": {}, **expected_results}
+
+
+def test_complex_types_example_help():
+    """Ensure the 'complex_types' examples help works."""
+    for o in complex_types.cli.params:
+        o.show_default = True
+    runner = CliRunner()
+    result = runner.invoke(complex_types.cli, ["--help"])
+    assert result.exit_code == 0
+    assert "--ports JSON STRING   port binding  [default: <class 'dict'>]" in result.output

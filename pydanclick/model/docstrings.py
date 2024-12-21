@@ -1,6 +1,6 @@
 """Extract attribute documentation from docstrings."""
 
-from typing import Dict, Literal, Type
+from typing import Literal
 
 from pydantic import BaseModel
 from typing_extensions import TypeAlias
@@ -11,8 +11,8 @@ DocstringStyle: TypeAlias = Literal["google", "numpy", "sphinx"]
 
 
 def parse_attribute_documentation(
-    model_cls: Type[BaseModel], docstring_style: DocstringStyle = "google"
-) -> Dict[FieldName, str]:
+    model_cls: type[BaseModel], docstring_style: DocstringStyle = "google"
+) -> dict[FieldName, str]:
     """Parse the docstring of a `BaseModel` and returns a mapping from field name to their documentation.
 
     Requires the optional dependency `griffe`. If it is not installed, returns an empty dictionary.
@@ -27,8 +27,7 @@ def parse_attribute_documentation(
     try:
         import logging
 
-        from griffe.dataclasses import Docstring
-        from griffe.docstrings.dataclasses import DocstringAttribute, DocstringSectionAttributes
+        from griffe import Docstring, DocstringAttribute, DocstringSectionAttributes
 
         logging.getLogger(f"griffe.docstrings.{docstring_style}").disabled = True
         logging.getLogger("griffe.agents.nodes").disabled = True

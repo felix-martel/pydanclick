@@ -3,7 +3,7 @@
 import datetime
 import re
 from pathlib import Path
-from typing import Any, List, Literal, Optional, Type, TypedDict, Union, cast, get_args, get_origin
+from typing import Any, Literal, Optional, TypedDict, Union, cast, get_args, get_origin
 from uuid import UUID
 
 import click
@@ -43,7 +43,7 @@ class PydanclickParamType(click.ParamType):
 
 
 def _get_pydanclick_type(field_type: click.ParamType) -> click.ParamType:
-    pydanclick_type: Type[PydanclickParamType] = type(
+    pydanclick_type: type[PydanclickParamType] = type(
         "PydanclickParamType",
         (
             PydanclickParamType,
@@ -70,7 +70,7 @@ class PydanclickDefault:
         return bool(self._default)
 
     def __repr__(self) -> Any:
-        return self._default.__repr__()
+        return repr(self._default)
 
 
 class PydanclickDefaultCallable(PydanclickDefault):
@@ -80,7 +80,7 @@ class PydanclickDefaultCallable(PydanclickDefault):
         return self._default.__call__(*args, **kwargs)
 
 
-def _get_range_from_metadata(metadata: List[Any]) -> _RangeDict:
+def _get_range_from_metadata(metadata: list[Any]) -> _RangeDict:
     """Convert Pydantic numerical constraints to keyword arguments compatible with `IntRange` and `FloatRange`.
 
     Args:
@@ -197,7 +197,7 @@ def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
 def _create_custom_type(field: FieldInfo) -> click.ParamType:
     """Create a custom Click type from a Pydantic field."""
     name = "".join(part.capitalize() for part in re.split(r"\W", str(field.annotation)) if part)
-    type_adapter = TypeAdapter(cast(Type[Any], field.annotation))
+    type_adapter = TypeAdapter(cast(type[Any], field.annotation))
 
     def convert(self, value, param, ctx):  # type: ignore[no-untyped-def]
         try:
@@ -208,7 +208,7 @@ def _create_custom_type(field: FieldInfo) -> click.ParamType:
         except ValidationError as e:
             self.fail(str(e), param, ctx)
 
-    custom_type: Type[click.ParamType] = type(
+    custom_type: type[click.ParamType] = type(
         name,
         (click.ParamType,),
         {
