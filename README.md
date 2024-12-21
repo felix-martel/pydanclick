@@ -421,7 +421,7 @@ pytest
 Other missing features:
 
 - Reading model from file
-- Specifying all field-specific options directly in the Pydantic model (would allow easier re-use)
+- Specifying all field-specific options directly in the Pydantic model (would allow easier reuse)
 - Most Click features should be supported out-of-the-box through the `extra_options` parameter. However, most of them aren't tested
 - Click and Pydantic both include validation logic. In particular, Click support custom `ParamType`, validation callbacks and `BadParameter` errors: it's not clear if we want to fully rely on Pydantic or on Click or on a mixture of both
 - populating Pydantic fields from existing options or arguments (combined with `exclude`, it will provide a complete escape hatch to bypass Pydantclick when needed)

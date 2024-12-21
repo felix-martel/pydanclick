@@ -126,7 +126,7 @@ def get_option_name(
             use kebab case and start with two dashes.
         is_boolean: whether the field is a boolean flag. Boolean flags have a specific behavior in Click: they have
             two option names, separated with a slash, one for True and one for False (for example, `--shout/--no-shout`)
-        prefix: prefix to preprend to the option name. Ignored if an alias was found for `dotted_name` or one of its
+        prefix: prefix to prepend to the option name. Ignored if an alias was found for `dotted_name` or one of its
             parent. If provided, prefix must use kebab case and start with two dashes.
 
     Return:
