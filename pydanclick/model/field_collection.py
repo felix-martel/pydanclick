@@ -117,7 +117,7 @@ def _collect_fields(
         model: type[BaseModel]
         model = obj if _is_pydantic_model(obj) else obj.annotation  # type: ignore[assignment, union-attr]
         docstrings = parse_attribute_documentation(model, docstring_style=docstring_style) if parse_docstring else {}
-        for field_name, field in model.model_fields.items():
+        for field_name, field in model.__pydantic_fields__.items():
             field_name = FieldName(field_name)
             documentation = docstrings.get(field_name, None)
             yield from _collect_fields(
