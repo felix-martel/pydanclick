@@ -3,6 +3,7 @@
 import datetime
 import re
 from pathlib import Path
+from types import UnionType
 from typing import Any, Literal, Optional, TypedDict, Union, cast, get_args, get_origin
 from uuid import UUID
 
@@ -120,7 +121,7 @@ def _get_numerical_type(field: FieldInfo) -> click.ParamType:
         either `click.INT`, `click.FLOAT` or an instance of `click.IntRange` or `click.FloatRange`
     """
     range_args = _get_range_from_metadata(field.metadata)
-    if field.annotation is int:
+    if field.annotation is int or int in get_args(field.annotation):
         if range_args:
             return click.IntRange(**range_args)  # type: ignore[arg-type]
         return click.INT
@@ -168,7 +169,7 @@ def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
     field_origin = get_origin(field_type)
     # TODO: handle annotated
     # TODO: handle subclasses
-    if field_origin is Union and len(field_args) == 2 and NoneType in field_args and field.default is None:
+    if field_origin is UnionType and len(field_args) == 2 and NoneType in field_args:
         # Optional types where None is only used as a default value can be safely treated as a
         # non-optional type, since Click doesn't really distinguish between a string with default value None from
         # an actual str
