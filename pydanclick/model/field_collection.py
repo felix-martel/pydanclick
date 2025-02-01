@@ -126,6 +126,7 @@ def _collect_fields(
                 parents=(*parents, field_name),
                 documentation=documentation,
                 parse_docstring=parse_docstring,
+                docstring_style=docstring_style,
                 unpack_list=unpack_list,
             )
     elif isinstance(obj, FieldInfo):
