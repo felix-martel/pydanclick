@@ -145,6 +145,7 @@ def _collect_fields(
                 parents=parents,
                 documentation=documentation,
                 parse_docstring=parse_docstring,
+                docstring_style=docstring_style,
                 # Cannot have unpacked model inside another unpacked model (unspecified behavior)
                 unpack_list=False,
             ):
@@ -159,6 +160,7 @@ def _collect_fields(
                     parents=parents,
                     documentation=documentation,
                     parse_docstring=parse_docstring,
+                    docstring_style=docstring_style,
                     unpack_list=unpack_list,
                 )
         # TODO: exclude base models from the union
