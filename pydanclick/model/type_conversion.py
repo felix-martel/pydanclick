@@ -3,16 +3,23 @@
 import datetime
 import re
 from pathlib import Path
-from types import UnionType
+import sys
 from typing import Any, Literal, Optional, TypedDict, Union, cast, get_args, get_origin
 from uuid import UUID
 
 import click
 from annotated_types import Ge, Gt, Le, Lt, SupportsGe, SupportsGt, SupportsLe, SupportsLt
 from pydantic import TypeAdapter, ValidationError
+from pydantic_core import PydanticUndefined
 from pydantic.fields import FieldInfo
 
 NoneType = type(None)
+
+if sys.version_info >= (3, 10):
+    from types import UnionType
+    UnionTypes = {Union, UnionType}
+else:
+    UnionTypes = {Union}
 
 
 class _RangeDict(TypedDict, total=False):
@@ -169,7 +176,8 @@ def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
     field_origin = get_origin(field_type)
     # TODO: handle annotated
     # TODO: handle subclasses
-    if field_origin is UnionType and len(field_args) == 2 and NoneType in field_args:
+
+    if field_origin in UnionTypes and len(field_args) == 2 and NoneType in field_args and field.default is not PydanticUndefined:
         # Optional types where None is only used as a default value can be safely treated as a
         # non-optional type, since Click doesn't really distinguish between a string with default value None from
         # an actual str
