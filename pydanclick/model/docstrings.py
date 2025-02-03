@@ -44,7 +44,7 @@ def parse_attribute_documentation(
             class_docs.append(cls.__doc__)
 
     fields = {}
-    for doc in class_docs:
+    for doc in reversed(class_docs):
         docstring = Docstring(doc).parse(docstring_style)
         for section in docstring:
             if not isinstance(section, DocstringSectionAttributes):
