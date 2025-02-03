@@ -17,6 +17,22 @@ def test_get_type_from_field_with_unconstrained_int():
     assert isinstance(click_type, click.types.IntParamType)
 
 
+def test_get_type_from_field_with_optional_int():
+    class Foo(BaseModel):
+        a: int | None = None
+
+    click_type = _get_type_from_field(Foo.model_fields["a"])
+    assert isinstance(click_type, click.types.IntParamType)
+
+
+def test_get_type_from_field_with_optional_float():
+    class Foo(BaseModel):
+        a: float | None = None
+
+    click_type = _get_type_from_field(Foo.model_fields["a"])
+    assert isinstance(click_type, click.types.FloatParamType)
+
+
 def test_get_type_from_field_with_unconstrained_bool():
     class Foo(BaseModel):
         a: bool
