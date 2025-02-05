@@ -36,11 +36,7 @@ def parse_attribute_documentation(
 
     class_docs: list[str] = []
     for cls in [model_cls, *model_cls.__bases__]:
-        if (
-            issubclass(cls, BaseModel)
-            and cls is not BaseModel
-            and cls.__doc__ is not None
-        ):
+        if issubclass(cls, BaseModel) and cls is not BaseModel and cls.__doc__ is not None:
             class_docs.append(cls.__doc__)
 
     fields = {}
