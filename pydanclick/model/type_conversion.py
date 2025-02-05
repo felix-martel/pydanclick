@@ -17,6 +17,7 @@ NoneType = type(None)
 
 if sys.version_info >= (3, 10):
     from types import UnionType
+
     UnionTypes = {Union, UnionType}
 else:
     UnionTypes = {Union}
@@ -177,7 +178,12 @@ def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
     # TODO: handle annotated
     # TODO: handle subclasses
 
-    if field_origin in UnionTypes and len(field_args) == 2 and NoneType in field_args and field.default is not PydanticUndefined:
+    if (
+        field_origin in UnionTypes
+        and len(field_args) == 2
+        and NoneType in field_args
+        and field.default is not PydanticUndefined
+    ):
         # Optional types where None is only used as a default value can be safely treated as a
         # non-optional type, since Click doesn't really distinguish between a string with default value None from
         # an actual str
