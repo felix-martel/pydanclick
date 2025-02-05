@@ -27,7 +27,7 @@ def test_get_type_from_field_with_optional_int():
 
 def test_get_type_from_field_with_optional_float():
     class Foo(BaseModel):
-        a: float | None = None
+        a: Optional[float] = None
 
     click_type = _get_type_from_field(Foo.model_fields["a"])
     assert isinstance(click_type, click.types.FloatParamType)
