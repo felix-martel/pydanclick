@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal, Optional, Union
 
 import click
 import pytest
@@ -15,6 +15,22 @@ def test_get_type_from_field_with_unconstrained_int():
 
     click_type = _get_type_from_field(Foo.model_fields["a"])
     assert isinstance(click_type, click.types.IntParamType)
+
+
+def test_get_type_from_field_with_optional_int():
+    class Foo(BaseModel):
+        a: Optional[int] = None
+
+    click_type = _get_type_from_field(Foo.model_fields["a"])
+    assert isinstance(click_type, click.types.IntParamType)
+
+
+def test_get_type_from_field_with_optional_float():
+    class Foo(BaseModel):
+        a: Optional[float] = None
+
+    click_type = _get_type_from_field(Foo.model_fields["a"])
+    assert isinstance(click_type, click.types.FloatParamType)
 
 
 def test_get_type_from_field_with_unconstrained_bool():
