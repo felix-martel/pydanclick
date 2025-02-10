@@ -18,9 +18,9 @@ def assert_options_equals(actuals: Iterable[click.Option], expecteds: Iterable[c
     for i, (actual, expected) in enumerate(zip(actuals, expecteds)):
         if isinstance(actual.type, PydanclickParamType):
             actual.type = actual.type.actual_type
-        assert actual.__dict__ == expected.__dict__, (
-            f"Different option at index {i}: {actual.__dict__} != {expected.__dict__}"
-        )
+        assert (
+            actual.__dict__ == expected.__dict__
+        ), f"Different option at index {i}: {actual.__dict__} != {expected.__dict__}"
 
 
 def maybe_raises(outcome):
