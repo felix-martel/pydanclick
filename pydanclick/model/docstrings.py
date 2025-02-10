@@ -33,13 +33,21 @@ def parse_attribute_documentation(
         logging.getLogger("griffe.agents.nodes").disabled = True
     except ImportError:
         return {}
-    docstring = Docstring(model_cls.__doc__ or "").parse(docstring_style)
+
+    class_docs: list[str] = []
+    for cls in [model_cls, *model_cls.__bases__]:
+        if issubclass(cls, BaseModel) and cls is not BaseModel and cls.__doc__ is not None:
+            class_docs.append(cls.__doc__)
+
     fields = {}
-    for section in docstring:
-        if not isinstance(section, DocstringSectionAttributes):
-            continue
-        for attribute in section.value:
-            if not isinstance(attribute, DocstringAttribute):
+    for doc in reversed(class_docs):
+        docstring = Docstring(doc).parse(docstring_style)
+        for section in docstring:
+            if not isinstance(section, DocstringSectionAttributes):
                 continue
-            fields[FieldName(attribute.name)] = attribute.description
+            for attribute in section.value:
+                if not isinstance(attribute, DocstringAttribute):
+                    continue
+                fields[FieldName(attribute.name)] = attribute.description
+
     return fields
