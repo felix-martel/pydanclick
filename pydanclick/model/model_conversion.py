@@ -83,6 +83,7 @@ def convert_to_click(
         shorten=cast(Optional[dict[DottedFieldName, OptionName]], shorten),
         extra_options=cast(dict[DottedFieldName, _ParameterKwargs], extra_options),
         ignore_unsupported=ignore_unsupported,
+        model_config=model.model_config,
     )
     unpacked_names = {field.unpacked_from for field in fields if field.unpacked_from is not None}
     validator = functools.partial(
