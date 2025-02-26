@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://felix-martel.github.io/pydanclick/</loc>
+         <lastmod>2025-02-26</lastmod>
+    </url>
+    <url>
+         <loc>https://felix-martel.github.io/pydanclick/api_reference/</loc>
+         <lastmod>2025-02-26</lastmod>
+    </url>
+    <url>
+         <loc>https://felix-martel.github.io/pydanclick/contributing/</loc>
+         <lastmod>2025-02-26</lastmod>
+    </url>
+    <url>
+         <loc>https://felix-martel.github.io/pydanclick/examples/complex/</loc>
+         <lastmod>2025-02-26</lastmod>
+    </url>
+    <url>
+         <loc>https://felix-martel.github.io/pydanclick/examples/complex_types/</loc>
+         <lastmod>2025-02-26</lastmod>
+    </url>
+    <url>
+         <loc>https://felix-martel.github.io/pydanclick/examples/nested/</loc>
+         <lastmod>2025-02-26</lastmod>
+    </url>
+    <url>
+         <loc>https://felix-martel.github.io/pydanclick/examples/simple/</loc>
+         <lastmod>2025-02-26</lastmod>
+    </url>
+</urlset>
