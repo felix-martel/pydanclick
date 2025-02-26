@@ -109,7 +109,7 @@ def _get_pydantic_fields(obj: type[BaseModel]) -> dict[str, FieldInfo]:
         return obj.__pydantic_fields__  # type: ignore[attr-defined, no-any-return]
     except AttributeError:
         # Pydantic <=2.9
-        return obj.model_fields  # type: ignore[attr-defined, no-any-return]
+        return obj.model_fields  # type: ignore[attr-defined, no-any-return, return-value]
 
 
 def _collect_fields(
