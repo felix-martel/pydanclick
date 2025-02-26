@@ -1,6 +1,6 @@
 [project]
 name = "pydanclick"
-version = "0.5.0"
+version = "0.5.1"
 description = "Use Pydantic models as Click options"
 authors = [
     {name = "Félix Martel", email = "felix.martel@polytechnique.edu>"},
