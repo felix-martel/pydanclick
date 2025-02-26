@@ -103,6 +103,15 @@ def _is_pydantic_model(model: Any) -> TypeGuard[type[BaseModel]]:
         return False
 
 
+def _get_pydantic_fields(obj: type[BaseModel]) -> dict[str, FieldInfo]:
+    try:
+        # Pydantic >=2.10
+        return obj.__pydantic_fields__  # type: ignore[attr-defined, no-any-return]
+    except AttributeError:
+        # Pydantic <=2.9
+        return obj.model_fields  # type: ignore[attr-defined, no-any-return, return-value]
+
+
 def _collect_fields(
     obj: Union[type[BaseModel], FieldInfo],
     name: FieldName = "",  # type: ignore[assignment]
@@ -117,7 +126,7 @@ def _collect_fields(
         model: type[BaseModel]
         model = obj if _is_pydantic_model(obj) else obj.annotation  # type: ignore[assignment, union-attr]
         docstrings = parse_attribute_documentation(model, docstring_style=docstring_style) if parse_docstring else {}
-        for field_name, field in model.__pydantic_fields__.items():
+        for field_name, field in _get_pydantic_fields(model).items():
             field_name = FieldName(field_name)
             documentation = docstrings.get(field_name, None)
             yield from _collect_fields(
