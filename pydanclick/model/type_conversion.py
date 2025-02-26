@@ -4,12 +4,12 @@ import datetime
 import re
 import sys
 from pathlib import Path
-from typing import Any, Literal, Optional, TypedDict, Union, cast, get_args, get_origin
+from typing import Annotated, Any, Literal, Optional, TypedDict, Union, cast, get_args, get_origin
 from uuid import UUID
 
 import click
 from annotated_types import Ge, Gt, Le, Lt, SupportsGe, SupportsGt, SupportsLe, SupportsLt
-from pydantic import TypeAdapter, ValidationError
+from pydantic import ConfigDict, TypeAdapter, ValidationError
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
@@ -139,7 +139,7 @@ def _get_numerical_type(field: FieldInfo) -> click.ParamType:
     return click.FLOAT
 
 
-def _get_type_from_field(field: FieldInfo) -> click.ParamType:
+def _get_type_from_field(field: FieldInfo, model_config: Optional[ConfigDict] = None) -> click.ParamType:
     """Get the Click type for a Pydantic field.
 
     Pydantic and Click both define custom types for validating arguments. This function attempts to map Pydantic field
@@ -150,14 +150,15 @@ def _get_type_from_field(field: FieldInfo) -> click.ParamType:
 
     Args:
         field: field to convert
+        model_config: configuration of the corresponding `BaseModel`
 
     Returns:
         a Click type
     """
-    return _get_pydanclick_type(_get_click_type_from_field(field))
+    return _get_pydanclick_type(_get_click_type_from_field(field, model_config=model_config))
 
 
-def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
+def _get_click_type_from_field(field: FieldInfo, model_config: Optional[ConfigDict] = None) -> click.ParamType:
     """Get the Click type for a Pydantic field.
 
     Pydantic and Click both define custom types for validating arguments. This function attempts to map Pydantic field
@@ -168,6 +169,7 @@ def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
 
     Args:
         field: field to convert
+        model_config: configuration of the corresponding `BaseModel`
 
     Returns:
         a Click type
@@ -206,13 +208,14 @@ def _get_click_type_from_field(field: FieldInfo) -> click.ParamType:
         # TODO: allow converting literal to feature switches
         return click.Choice(field_args)
     else:
-        return _create_custom_type(field)
+        return _create_custom_type(field, model_config=model_config)
 
 
-def _create_custom_type(field: FieldInfo) -> click.ParamType:
+def _create_custom_type(field: FieldInfo, model_config: Optional[ConfigDict] = None) -> click.ParamType:
     """Create a custom Click type from a Pydantic field."""
     name = "".join(part.capitalize() for part in re.split(r"\W", str(field.annotation)) if part)
-    type_adapter = TypeAdapter(cast(type[Any], field.annotation))
+    annotation = Annotated[field.annotation, *field.metadata] if field.metadata else field.annotation
+    type_adapter = TypeAdapter(cast(type[Any], annotation), config=model_config)
 
     def convert(self, value, param, ctx):  # type: ignore[no-untyped-def]
         try:

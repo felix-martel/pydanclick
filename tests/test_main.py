@@ -1,7 +1,9 @@
+from typing import Annotated
+
 import click
 import pytest
 from click.testing import CliRunner
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, BeforeValidator, ConfigDict, ValidationError
 
 from pydanclick import from_pydantic
 from tests.base_models import Bar, Baz, Foo, Foos, MultipleFoos, NestedFoos, Obj, OptionalFoos, UnionFoos
@@ -125,3 +127,25 @@ def test_unpack_list_with_nested_list():
     result = CliRunner().invoke(cli, ["--nested-foos-a", "2", "--no-nested-foos-b", "--nested-foos-a", "3"])
     assert result.exit_code == 0
     assert NestedFoos.model_validate_json(result.output) == NestedFoos(nested=Foos(foos=[Foo(a=2, b=False), Foo(a=3)]))
+
+
+def test_arbitrary_type():
+    """Arbitrary types should be supported."""
+
+    class Foo:
+        def __init__(self, *args):
+            self.x = args
+
+    class MyModel(BaseModel):
+        model_config = ConfigDict(arbitrary_types_allowed=True)
+
+        # `foo` uses an arbitrary type `Foo` with a custom JSON validator
+        foo: Annotated[Foo, BeforeValidator(lambda value: Foo(*value.split()) if isinstance(value, str) else value)]
+
+    @click.command()
+    @from_pydantic("my_model", MyModel)
+    def cli(my_model: MyModel):
+        assert my_model.foo.x == ("1", "2", "3")
+
+    result = CliRunner().invoke(cli, ["--foo", '"1 2 3"'], catch_exceptions=False)
+    assert result.exit_code == 0

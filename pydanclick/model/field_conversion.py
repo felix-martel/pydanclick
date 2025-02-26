@@ -3,7 +3,7 @@
 from typing import Any, Callable, Optional, TypeVar, Union
 
 import click
-from pydantic import PydanticUserError
+from pydantic import ConfigDict, PydanticUserError
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
@@ -22,6 +22,7 @@ def convert_fields_to_options(
     shorten: Optional[dict[DottedFieldName, OptionName]] = None,
     extra_options: Optional[dict[DottedFieldName, _ParameterKwargs]] = None,
     ignore_unsupported: Optional[bool] = False,
+    model_config: Optional[ConfigDict] = None,
 ) -> tuple[dict[ArgumentName, DottedFieldName], list[click.Option]]:
     """Convert Pydantic fields to Click options.
 
@@ -33,6 +34,7 @@ def convert_fields_to_options(
         extra_options: extra options to pass to `click.Option` for specific fields, as a mapping from dotted field names
             to option dictionary
         ignore_unsupported: ignore unsupported model fields instead of raising
+        model_config: configuration of the corresponding `BaseModel`
 
     Returns:
         a pair `(qualified_names, options)` where `qualified_names` is a mapping from argument names to dotted field
@@ -60,6 +62,7 @@ def convert_fields_to_options(
                 short_name=shorten.get(field.dotted_name, None),
                 option_kwargs=extra_options.get(field.dotted_name, {}),
                 multiple=field.multiple,
+                model_config=model_config,
             )
             options.append(option)
             qualified_names[argument_name] = field.dotted_name
@@ -149,6 +152,7 @@ def _get_option_from_field(
     short_name: Optional[str] = None,
     option_kwargs: Optional[_ParameterKwargs] = None,
     multiple: bool = False,
+    model_config: Optional[ConfigDict] = None,
 ) -> click.Option:
     """Convert a Pydantic field to a Click option.
 
@@ -161,6 +165,7 @@ def _get_option_from_field(
         short_name: short name of the option (one dash and one letter)
         option_kwargs: extra options to pass to `click.option`
         multiple: if field can be specified multiple times
+        model_config: configuration of the corresponding `BaseModel`
 
     Returns:
         `click.Option` object
@@ -169,7 +174,7 @@ def _get_option_from_field(
     if short_name is not None:
         param_decls.append(short_name)
     kwargs: _ParameterKwargs = {
-        "type": _get_type_from_field(field_info),
+        "type": _get_type_from_field(field_info, model_config=model_config),
         "default": _get_default_value_from_field(field_info) if not multiple else [],
         "required": field_info.is_required(),
         "help": documentation,
