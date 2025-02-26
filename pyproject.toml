@@ -1,17 +1,24 @@
-[tool.poetry]
+[project]
 name = "pydanclick"
-version = "0.5.0"
+version = "0.5.1"
 description = "Use Pydantic models as Click options"
-authors = ["Félix Martel <felix.martel@polytechnique.edu>"]
-repository = "https://github.com/felix-martel/pydanclick"
-documentation = "https://felix-martel.github.io/pydanclick/"
+authors = [
+    {name = "Félix Martel", email = "felix.martel@polytechnique.edu>"},
+]
 readme = "README.md"
+requires-python = ">=3.9,<4.0"
+
+[project.urls]
+Repository = "https://github.com/felix-martel/pydanclick.git"
+Documentation = "https://felix-martel.github.io/pydanclick/"
+Issues = "https://github.com/felix-martel/pydanclick/issues"
+
+[tool.poetry]
 packages = [
   {include = "pydanclick"}
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<4.0"
 pydantic = "^2.6.1"
 click = "^8.1.7"
 typing-extensions = "^4.9.0"
@@ -19,7 +26,7 @@ annotated-types = "^0.6.0"
 pydantic-core = "^2.16.2"
 griffe = {version = ">=1.0,<=1.4.0", optional = true} # Griffe >1.4.0 doesn't support Python 3.8
 
-[tool.poetry.extras]
+[project.optional-dependencies]
 griffe = ["griffe"]
 
 [tool.poetry.group.dev.dependencies]
